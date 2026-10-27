@@ -1,0 +1,1494 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>Gipszkarton Fal Tervező — Lépcsőház lezárás</title>
+<style>
+  :root{
+    --bg:#f3f1ec; --surface:#ffffff; --surface-2:#ebe8e1; --surface-3:#e1ddd2;
+    --text:#201d18; --text-muted:#6b665c; --border:#d8d3c8; --border-strong:#c2bbac;
+    --accent:#1f5f73; --accent-ink:#164a5a; --accent-soft:#dbe9ec;
+    --line-steel:#4c5c68; --ok:#2f7d4f; --ok-soft:#e1efe3; --warn:#b4740e; --warn-soft:#f6ecd8;
+    --danger:#b5392f; --danger-soft:#f6e1de;
+    --board-fill:#efe8d8; --board-line:#cab98f;
+    --font-ui: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    --radius: 6px;
+  }
+  :root[data-theme="dark"]{
+    --bg:#14181b; --surface:#1b2024; --surface-2:#21272b; --surface-3:#282f34;
+    --text:#e8e5de; --text-muted:#9aa0a3; --border:#2c3338; --border-strong:#3a4248;
+    --accent:#4fb3cc; --accent-ink:#bfe9f2; --accent-soft:#1f3540;
+    --line-steel:#8fa3af; --ok:#5fbf85; --ok-soft:#1c3327; --warn:#e0a83a; --warn-soft:#3a2f15;
+    --danger:#e2685c; --danger-soft:#3a201c;
+    --board-fill:#332d22; --board-line:#6b5d3f;
+  }
+  :root[data-theme="light"]{ --board-fill:#efe8d8; --board-line:#cab98f; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14181b; --surface:#1b2024; --surface-2:#21272b; --surface-3:#282f34;
+      --text:#e8e5de; --text-muted:#9aa0a3; --border:#2c3338; --border-strong:#3a4248;
+      --accent:#4fb3cc; --accent-ink:#bfe9f2; --accent-soft:#1f3540;
+      --line-steel:#8fa3af; --ok:#5fbf85; --ok-soft:#1c3327; --warn:#e0a83a; --warn-soft:#3a2f15;
+      --danger:#e2685c; --danger-soft:#3a201c;
+      --board-fill:#332d22; --board-line:#6b5d3f;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font-ui); color:var(--text); background:var(--bg);
+    font-size:14px; line-height:1.45;
+  }
+  .app{display:flex; min-height:100vh; width:100%;}
+  .rail{
+    width:380px; min-width:320px; max-width:420px; flex:0 0 auto;
+    background:var(--surface); border-right:1px solid var(--border);
+    overflow-y:auto; max-height:100vh; position:sticky; top:0;
+    padding:18px 16px 60px;
+  }
+  .main{flex:1 1 auto; min-width:0; padding:18px 22px 60px; overflow-x:auto;}
+  .brand{display:flex; align-items:baseline; gap:8px; margin-bottom:4px;}
+  .brand .mark{
+    width:22px;height:22px;border-radius:4px;background:var(--accent);
+    display:inline-flex;align-items:center;justify-content:center;color:var(--surface);
+    font-family:var(--font-mono);font-weight:700;font-size:12px;flex:0 0 auto;
+  }
+  h1{font-size:17px; margin:0 0 2px; font-weight:700; letter-spacing:.1px;}
+  .subtitle{color:var(--text-muted); font-size:12px; margin:0 0 18px;}
+  h2{font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin:0 0 10px; font-weight:700;}
+  .section{border-top:1px solid var(--border); padding:16px 0;}
+  .section:first-of-type{border-top:none; padding-top:4px;}
+  .field{margin-bottom:10px;}
+  .field label{display:block; font-size:12.5px; color:var(--text); margin-bottom:3px; font-weight:600;}
+  .field .hint{display:block; font-size:11px; color:var(--text-muted); font-weight:400; margin-top:2px;}
+  .row{display:flex; gap:8px;}
+  .row > *{flex:1 1 0;}
+  input[type="number"], input[type="text"], select{
+    width:100%; padding:7px 8px; border:1px solid var(--border-strong); border-radius:var(--radius);
+    background:var(--surface); color:var(--text); font-family:var(--font-mono); font-size:13px;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="number"]:focus, input[type="text"]:focus, select:focus{
+    outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent);
+  }
+  input[disabled]{opacity:.55;}
+  .checkrow{display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600;}
+  .checkrow input{width:15px;height:15px;}
+  button{
+    font-family:var(--font-ui); font-size:12.5px; font-weight:600; cursor:pointer;
+    border-radius:var(--radius); border:1px solid var(--border-strong); background:var(--surface-2);
+    color:var(--text); padding:7px 11px;
+  }
+  button:hover{background:var(--surface-3);}
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+  button.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  button.primary:hover{filter:brightness(1.08);}
+  button.ghost{background:transparent;}
+  button.small{padding:4px 8px; font-size:11.5px;}
+  .pts-table{width:100%; border-collapse:collapse; margin-bottom:8px;}
+  .pts-table th{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); text-align:left; padding:0 6px 6px; font-weight:700;}
+  .pts-table td{padding:3px 6px 3px 0;}
+  .pts-table input{padding:5px 6px; font-size:12.5px;}
+  .info-box{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius);
+    padding:12px 13px; font-size:12.5px; color:var(--text);
+  }
+  .info-box h3{font-size:12.5px; margin:0 0 4px; color:var(--accent-ink);}
+  .info-box ul{margin:4px 0 10px; padding-left:18px;}
+  .info-box li{margin-bottom:5px;}
+  .info-box p.lead{margin:0 0 10px; color:var(--text-muted);}
+  .toggle-info{background:none;border:none;color:var(--accent-ink);font-size:12px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px;}
+
+  .seg-tabs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
+  .seg-tab{
+    display:flex; align-items:center; gap:7px; padding:6px 6px 6px 12px; border-radius:999px;
+    border:1px solid var(--border-strong); background:var(--surface-2); font-size:12px; font-weight:700;
+    cursor:pointer; color:var(--text);
+  }
+  .seg-tab.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .seg-tab .rm{
+    width:18px;height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.08); font-weight:400; line-height:1;
+  }
+  .seg-tab.active .rm{background:rgba(255,255,255,0.25);}
+  .corner-note{font-size:11.5px; color:var(--text-muted); margin:4px 0 12px; line-height:1.5;}
+
+  /* main area */
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;}
+  .topbar .status-pills{display:flex; gap:8px; flex-wrap:wrap;}
+  .pill{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px;
+    font-size:11.5px; font-weight:700; border:1px solid transparent;
+  }
+  .pill.ok{background:var(--ok-soft); color:var(--ok);}
+  .pill.warn{background:var(--warn-soft); color:var(--warn);}
+  .pill.danger{background:var(--danger-soft); color:var(--danger);}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .actions{display:flex; gap:8px;}
+
+  .layer-toggles{display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin-bottom:10px;}
+  .layer-toggles .ltlabel{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); font-weight:700;}
+  .layer-toggle{
+    display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; cursor:pointer;
+    padding:5px 10px 5px 6px; border-radius:999px; border:1px solid var(--border-strong); background:var(--surface);
+    user-select:none;
+  }
+  .layer-toggle input{width:14px;height:14px; accent-color:var(--accent); margin:0;}
+  .layer-toggle .sw{width:14px; height:14px; border-radius:3px; flex:0 0 auto; border:1px solid var(--border-strong);}
+  .layer-toggle .sw.profiles{background:var(--line-steel);}
+  .layer-toggle .sw.board{background:var(--board-fill); border-color:var(--board-line);}
+  .layer-toggle .sw.insulation{background:repeating-linear-gradient(45deg, var(--line-steel) 0 2px, transparent 2px 5px);}
+  .canvas-wrap.hide-profiles .layer-profiles{display:none;}
+  .canvas-wrap.hide-board .layer-board{display:none;}
+  .canvas-wrap.hide-insulation .layer-insulation{display:none;}
+  .canvas-wrap{
+    background:
+      linear-gradient(var(--surface-2) 1px, transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg, var(--surface-2) 1px, transparent 1px) 0 0/28px 28px,
+      var(--surface);
+    border:1px solid var(--border); border-radius:8px; padding:14px;
+    margin-bottom:18px;
+  }
+  .section-card{border:1px solid var(--border-strong); border-radius:8px; padding:10px 12px 4px; margin-bottom:12px; background:color-mix(in srgb, var(--surface) 72%, transparent);}
+  .section-card:last-child{margin-bottom:0;}
+  .section-card h3{margin:0 0 4px; font-size:13px; font-weight:700; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; color:var(--text);}
+  .section-card h3 .dims{font-weight:400; color:var(--text-muted); font-size:11.5px; font-family:var(--font-mono);}
+  .section-card .svg-scroll{overflow-x:auto;}
+  .section-card svg{display:block; margin:0 auto;}
+
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:18px;}
+  .kpi{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:11px 13px;}
+  .kpi .label{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); font-weight:700; margin-bottom:4px;}
+  .kpi .value{font-family:var(--font-mono); font-size:19px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .kpi .sub{font-size:11px; color:var(--text-muted); margin-top:2px;}
+
+  .tabs{display:flex; gap:2px; border-bottom:1px solid var(--border); margin-bottom:14px;}
+  .tab-btn{
+    background:none; border:none; border-bottom:2px solid transparent; border-radius:0;
+    padding:9px 4px; margin-right:18px; font-size:13px; font-weight:700; color:var(--text-muted);
+  }
+  .tab-btn.active{color:var(--text); border-bottom-color:var(--accent);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  table.data{width:100%; border-collapse:collapse; font-size:12.5px;}
+  table.data th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted);
+    border-bottom:1px solid var(--border-strong); padding:7px 8px; font-weight:700; white-space:nowrap;
+  }
+  table.data td{padding:7px 8px; border-bottom:1px solid var(--border); font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  table.data td.label{font-family:var(--font-ui); font-variant-numeric:normal;}
+  table.data tr:last-child td{border-bottom:none;}
+  table.data tfoot td{font-weight:700; border-top:1px solid var(--border-strong); border-bottom:none;}
+  .table-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:8px; background:var(--surface);}
+  .table-scroll table.data{min-width:520px;}
+  .table-scroll{margin-bottom:16px;}
+
+  .group-title{font-size:13px; font-weight:700; margin:18px 0 8px; display:flex; align-items:center; gap:8px;}
+  .group-title .n{color:var(--text-muted); font-weight:400; font-size:12px;}
+
+  .note{font-size:11.5px; color:var(--text-muted); margin-top:6px;}
+  .warn-banner{
+    background:var(--warn-soft); color:var(--warn); border:1px solid var(--warn);
+    border-radius:8px; padding:10px 13px; font-size:12.5px; font-weight:600; margin-bottom:10px;
+    display:flex; gap:8px; align-items:flex-start;
+  }
+  .warn-banner.danger{background:var(--danger-soft); color:var(--danger); border-color:var(--danger);}
+
+  .shop-list{list-style:none; margin:0; padding:0;}
+  .shop-list li{
+    display:flex; justify-content:space-between; gap:12px; padding:10px 12px;
+    border-bottom:1px solid var(--border); font-size:13px;
+  }
+  .shop-list li:last-child{border-bottom:none;}
+  .shop-list .qty{font-family:var(--font-mono); font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .shop-list .item-name{font-weight:600;}
+  .shop-list .item-sub{display:block; font-size:11px; color:var(--text-muted); font-weight:400; margin-top:1px;}
+  .shop-cat{
+    font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent-ink);
+    background:var(--accent-soft); display:inline-block; padding:5px 10px; border-radius:6px;
+    font-weight:700; margin:14px 0 6px;
+  }
+
+  footer.app-footer{color:var(--text-muted); font-size:11px; margin-top:28px; border-top:1px solid var(--border); padding-top:12px;}
+
+  @media (max-width: 860px){
+    .app{flex-direction:column;}
+    .rail{position:relative; width:100%; max-width:none; max-height:none; border-right:none; border-bottom:1px solid var(--border);}
+  }
+  @media print{
+    .rail, .topbar .actions, .tabs{display:none;}
+    .main{padding:0;}
+  }
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><span class="mark">GK</span><h1>Gipszkarton Fal Tervező</h1></div>
+    <p class="subtitle">Fémvázas válaszfal(ak) lépcsőház-lezáráshoz — ferde él, sarokcsatlakozás és ajtónyílás támogatásával</p>
+
+    <div class="section">
+      <h2>Alapok — fémvázas gipszkartonozás</h2>
+      <button class="toggle-info" id="toggleInfo" type="button" aria-expanded="false">Rövid összefoglaló megmutatása</button>
+      <div class="info-box" id="infoBox" style="display:none; margin-top:10px;">
+        <p class="lead">A váz két fő profilból épül fel, a tábla menti csavarozás és a dübelezés szabályai pedig a teherbírást és a hangszigetelést is befolyásolják.</p>
+        <h3>UW profil — vezetősín</h3>
+        <ul>
+          <li>Padlóhoz, mennyezethez és oldalfalhoz rögzítve, U-keresztmetszettel.</li>
+          <li>Rögzítés: dübel + csavar kb. <strong>60–100 cm</strong>-enként, min. 3 db/szál, alá tömítőszalag kerül.</li>
+        </ul>
+        <h3>CW profil — osztóborda</h3>
+        <ul>
+          <li>A vezetősínbe állítva, jellemzően <strong>60 cm</strong> (nagyobb igénybevételnél 40 cm) tengelytávolsággal.</li>
+          <li>Az UW-be pattintható, de panelcsavarral (2 db/kötés) biztosabb.</li>
+        </ul>
+        <h3>Nyílás (ajtó) szegélyezése</h3>
+        <ul>
+          <li>Mindkét oldalon tokoszlop, teljes falmagasságban — kétféleképpen kialakítva:
+            <strong>dupla CW</strong> (két egymásba/egymás mellé csavarozott CW profil), vagy egyetlen
+            <strong>UA teherhordó profil</strong> (vastagabb, kb. 2 mm-es acéllemezből, ugyanolyan C-szelvény
+            méretekben, mint a CW). Az UA nagyobb pontterhelést bír el — szélesebb, nehezebb (pl. kétszárnyú)
+            ajtóknál, vagy ha sűrűn lesz rá akasztva/terhelve, érdemesebb az UA-t választani egy dupla CW helyett.</li>
+          <li>A nyílás fölött UW-ből vágott/hajlított fejléc a tokoszlopok közt.</li>
+          <li>A fejléc és a felső sín közt törpe (kitöltő) CW oszlopok, az alapozstással egyező osztásban.</li>
+        </ul>
+        <h3>Két falszakasz sarokcsatlakozása</h3>
+        <ul>
+          <li>Nincs szükség külön sarokprofilra: mindkét szakasz saját szélső (sarok menti) CW oszlopa egymás mellé kerül, és egymáshoz csavarozod (kb. 4 panelcsavar/sarok).</li>
+          <li>A gipszkarton táblák az egyik oldalon a sarkon túlnyúlva takarják a másik szakasz táblavégét, vagy egyenes vágással zárnak — a sarok mindkét oldalán hézagolás kell.</li>
+        </ul>
+        <h3>Tábla és hézagolás</h3>
+        <ul>
+          <li>TN gipszkarton csavar kb. <strong>25–30 cm</strong>-enként, él mentén min. 10 mm-re.</li>
+          <li>Illesztéseknél papírszalag/üvegszövet háló + glettanyag.</li>
+        </ul>
+        <h3>Ferde (lépcső fölötti) szakasz</h3>
+        <ul>
+          <li>A felső sín törésenként gérvágva, vagy a lépcsőkarral párhuzamos segédlécre rögzítve.</li>
+          <li>Minden oszlop egyedi, döntött tetejű hosszra vágva — ezt számolja ki alább a tervező.</li>
+        </ul>
+        <h3>Emelt vagy ferde alsó él</h3>
+        <ul>
+          <li>Ha egy falszakasz nem éri el a padlót, vagy az alja a lépcsőkart követve maga is emelkedik, az alsó vezetősín is törve/gérvágva fut, akárcsak a felső — ezt a "Kijelölt szakasz — alsó él" résznél lehet megadni.</li>
+          <li>Az oszlopok ekkor a helyi alsó és felső él között futnak (nem a padlótól), a hosszukat a tervező ennek megfelelően számolja.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Falszakaszok</h2>
+      <div class="seg-tabs" id="segTabs"></div>
+      <button type="button" class="small" id="addSectionBtn">+ Új falszakasz (pl. sarokban csatlakozó fal)</button>
+      <p class="corner-note">Ha a lezárás két (vagy több), egymáshoz szögben csatlakozó falsíkból áll — pl. a lépcső körbefordulásánál —, vegyél fel minden síkhoz külön szakaszt. Mindegyiknek saját geometriája és ajtónyílása lehet; az anyagszükséglet és a bevásárlólista az összes szakaszra összevontan készül.</p>
+      <div class="field">
+        <label>Kijelölt szakasz neve</label>
+        <input type="text" id="sectionName">
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Kijelölt szakasz — felső él töréspontjai</h2>
+      <table class="pts-table" id="ptsTable">
+        <thead><tr><th>X (mm, bal széltől)</th><th>Magasság (mm)</th><th></th></tr></thead>
+        <tbody id="ptsBody"></tbody>
+      </table>
+      <button type="button" class="small" id="addPointBtn">+ Töréspont hozzáadása</button>
+      <div class="field" style="margin-top:10px;">
+        <label>Szakasz szélessége (mm) <span class="hint">= az utolsó töréspont X értéke</span></label>
+        <input type="text" id="widthDisplay" disabled>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Kijelölt szakasz — alsó él</h2>
+      <div class="field checkrow"><input type="checkbox" id="customBase"><label for="customBase" style="margin:0;">Az alja nem a padlón fekszik és/vagy nem vízszintes (pl. lépcsőkar fölött)</label></div>
+      <p class="corner-note" style="margin-top:6px;">Alapból a szakasz alja a padlón (0 mm), vízszintesen fut. Bekapcsolva ugyanúgy töréspontokkal szerkesztheted, mint a felső élt — pl. egy lépcsőkar fölé kerülő fal aljának a lépcső dőlését lehet követnie, és nem feltétlenül éri el a padlót.</p>
+      <table class="pts-table" id="baseTable" style="display:none;">
+        <thead><tr><th>X (mm, bal széltől)</th><th>Magasság (mm)</th><th></th></tr></thead>
+        <tbody id="baseBody"></tbody>
+      </table>
+      <button type="button" class="small" id="addBasePointBtn" style="display:none;">+ Töréspont hozzáadása</button>
+    </div>
+
+    <div class="section">
+      <h2>Kijelölt szakasz — ajtónyílás</h2>
+      <div class="field checkrow"><input type="checkbox" id="doorEnabled" checked><label for="doorEnabled" style="margin:0;">Ajtónyílás ebben a szakaszban</label></div>
+      <div class="row">
+        <div class="field"><label>Pozíció X (mm)</label><input type="number" id="doorOffset" value="2700" step="10"></div>
+        <div class="field"><label>Nyílás szélesség (mm)</label><input type="number" id="doorWidth" value="1600" step="10"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Nyílás magasság (mm)</label><input type="number" id="doorHeight" value="2050" step="10"></div>
+        <div class="field checkrow" style="margin-top:22px;"><input type="checkbox" id="doorDouble" checked><label for="doorDouble" style="margin:0;">Kétszárnyú</label></div>
+      </div>
+      <p class="note">A kétszárnyú jelölés csak tájékoztató — a vázszerkezet (dupla tokoszlop + fejléc) mindkét esetben azonos elven készül.</p>
+    </div>
+
+    <div class="section">
+      <h2>Vázszerkezet paraméterei <span class="hint" style="text-transform:none;">(közös minden szakaszra)</span></h2>
+      <div class="row">
+        <div class="field"><label>Profil szélesség</label>
+          <select id="profileWidth">
+            <option value="50">CW/UW 50 mm</option>
+            <option value="75" selected>CW/UW 75 mm</option>
+            <option value="100">CW/UW 100 mm</option>
+          </select>
+        </div>
+        <div class="field"><label>Oszloposztás</label>
+          <select id="studSpacing">
+            <option value="400">40 cm</option>
+            <option value="600" selected>60 cm</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Burkolt oldalak</label>
+          <select id="sides"><option value="1">1 oldal</option><option value="2" selected>2 oldal</option></select>
+        </div>
+        <div class="field"><label>Rétegek / oldal</label>
+          <select id="layers"><option value="1" selected>1 réteg</option><option value="2">2 réteg</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Tábla vastagság</label>
+        <select id="boardThickness">
+          <option value="9.5">9,5 mm</option>
+          <option value="12.5" selected>12,5 mm</option>
+          <option value="15">15 mm</option>
+        </select>
+      </div>
+      <div class="field checkrow"><input type="checkbox" id="insulationEnabled" checked><label for="insulationEnabled" style="margin:0;">Ásványgyapot szigetelés a mezőkben</label></div>
+      <div class="field"><label>Ajtó tokoszlop kialakítása</label>
+        <select id="doorJambType">
+          <option value="doubleCW" selected>Dupla CW profil (2× összecsavarozva)</option>
+          <option value="UA">UA teherhordó profil (1× vastagabb acél)</option>
+        </select>
+        <span class="hint">UA profilnál nincs szükség dupla CW-re — egy, vastagabb lemezű teherhordó profil tartja a tokot, különösen széles/nehéz (pl. kétszárnyú) ajtóknál ajánlott.</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Anyagkészlet (beszerezhető méretek)</h2>
+      <div class="field"><label>Profil szálhossz (UW és CW egyaránt)</label>
+        <select id="stockBarLen">
+          <option value="3000">3,0 m</option>
+          <option value="4000">4,0 m</option>
+          <option value="5000">5,0 m</option>
+          <option value="6000" selected>6,0 m</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="field"><label>Gipszkarton tábla szélesség (mm)</label><input type="number" id="boardW" value="1200" step="10"></div>
+        <div class="field"><label>Tábla hossz (mm)</label><input type="number" id="boardH" value="2600" step="10"></div>
+      </div>
+      <div class="field"><label>Vágási hulladék / tartalék <span class="hint">tábla- és szigetelésanyagra</span></label>
+        <input type="number" id="wastePct" value="12" min="0" max="50" step="1">
+      </div>
+      <div class="field"><label>Szigetelés csomag mérete (m²/csomag)</label>
+        <input type="number" id="insPackArea" value="5.5" step="0.1">
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Kötőelemek — becslés</h2>
+      <div class="row">
+        <div class="field"><label>Sín dübelezési köz (mm)</label><input type="number" id="trackFixSpacing" value="600" step="10" min="100"></div>
+        <div class="field"><label>Csavar / m² tábla</label><input type="number" id="screwsPerM2" value="20" step="1" min="1"></div>
+      </div>
+      <p class="note">Ezek tájékoztató jellegű, iparban szokásos ökölszámok — konkrét termék adatlapja felülírhatja.</p>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="status-pills" id="statusPills"></div>
+      <div class="actions">
+        <button type="button" id="printBtn" class="ghost">Nyomtatás</button>
+      </div>
+    </div>
+
+    <div id="warnings"></div>
+
+    <div class="layer-toggles">
+      <span class="ltlabel">Rétegek:</span>
+      <label class="layer-toggle"><span class="sw profiles"></span><input type="checkbox" id="layerProfiles" checked>Profilok</label>
+      <label class="layer-toggle"><span class="sw board"></span><input type="checkbox" id="layerBoard" checked>Gipszkarton</label>
+      <label class="layer-toggle"><span class="sw insulation"></span><input type="checkbox" id="layerInsulation" checked>Szigetelés</label>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap"></div>
+
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="cutlist" type="button">Vágási lista</button>
+      <button class="tab-btn" data-tab="materials" type="button">Anyagszükséglet</button>
+      <button class="tab-btn" data-tab="shopping" type="button">Bevásárlólista</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-cutlist"></div>
+    <div class="tab-panel" id="tab-materials"></div>
+    <div class="tab-panel" id="tab-shopping"></div>
+
+    <footer class="app-footer">A számítások tervezési célt szolgálnak, tájékoztató jellegűek; helyszíni felmérés és a választott profilrendszer gyártói útmutatója (pl. Knauf, Rigips) alapján pontosíthatók. Az adatok automatikusan mentésre kerülnek ebben a böngészőben.</footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var TRACK_DEDUCTION = 10;
+  var HEADER_OVERLAP = 100;
+  var EPS = 1;
+  var STORAGE_KEY = "drywallPlannerState_v2";
+
+  function defaultState(){
+    return {
+      nextId: 3,
+      activeSectionId: "s1",
+      sections: [
+        {
+          id:"s1", name:"1. falszakasz — lépcső fölötti ferde fal",
+          points:[{x:0,h:1000},{x:1200,h:1000},{x:2600,h:2700},{x:4600,h:2700}],
+          doorEnabled:true, doorOffset:2900, doorWidth:1600, doorHeight:2050, doorDouble:true
+        },
+        {
+          id:"s2", name:"2. falszakasz — sarokban csatlakozó oldalfal",
+          points:[{x:0,h:2700},{x:1400,h:2700}],
+          customBase:true, basePoints:[{x:0,h:600},{x:1400,h:1400}],
+          doorEnabled:false, doorOffset:0, doorWidth:900, doorHeight:2050, doorDouble:false
+        }
+      ],
+      profileWidth:75, studSpacing:600, sides:2, layers:1, boardThickness:12.5,
+      insulationEnabled:true, doorJambType:"doubleCW",
+      stockBarLen:6000, boardW:1200, boardH:2600, wastePct:12, insPackArea:5.5,
+      trackFixSpacing:600, screwsPerM2:20,
+      viewLayers:{profiles:true, board:true, insulation:true}
+    };
+  }
+  var state = defaultState();
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw){
+        var saved = JSON.parse(raw);
+        if (saved && Array.isArray(saved.sections) && saved.sections.length>=1){
+          state = saved;
+          if (!state.viewLayers) state.viewLayers = {profiles:true, board:true, insulation:true};
+          if (!state.doorJambType) state.doorJambType = "doubleCW";
+        }
+      }
+    }catch(e){}
+  }
+  function saveState(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  function fmt(n, dec){
+    dec = dec===undefined?0:dec;
+    if (!isFinite(n)) return "–";
+    return n.toLocaleString("hu-HU", {minimumFractionDigits:dec, maximumFractionDigits:dec});
+  }
+  function mm2m(mm){ return mm/1000; }
+
+  function getActiveSection(){
+    var s = state.sections.filter(function(s){return s.id===state.activeSectionId;})[0];
+    return s || state.sections[0];
+  }
+
+  // ---------- geometry (per section) ----------
+  function sortedArr(arr){
+    return arr.slice().sort(function(a,b){return a.x-b.x;});
+  }
+  function sortedPoints(section){
+    return sortedArr(section.points);
+  }
+  function sortedBasePoints(section){
+    if (!section.customBase || !section.basePoints || section.basePoints.length<2){
+      return [{x:0,h:0},{x:wallWidth(section),h:0}];
+    }
+    return sortedArr(section.basePoints);
+  }
+  function wallWidth(section){
+    var pts = sortedPoints(section);
+    return pts[pts.length-1].x;
+  }
+  function heightAt(x, pts){
+    if (x<=pts[0].x) return pts[0].h;
+    for (var i=0;i<pts.length-1;i++){
+      if (x>=pts[i].x && x<=pts[i+1].x){
+        var dx = pts[i+1].x-pts[i].x;
+        if (dx<=0) return pts[i+1].h;
+        var t = (x-pts[i].x)/dx;
+        return pts[i].h + t*(pts[i+1].h-pts[i].h);
+      }
+    }
+    return pts[pts.length-1].h;
+  }
+  // area between a top polyline and a base polyline (default base = flat floor at 0)
+  function polygonAreaMm2(topPts, basePts){
+    basePts = basePts || [{x:topPts[0].x,h:0},{x:topPts[topPts.length-1].x,h:0}];
+    var xsSet = {};
+    topPts.forEach(function(p){ xsSet[p.x]=true; });
+    basePts.forEach(function(p){ xsSet[p.x]=true; });
+    var xs = Object.keys(xsSet).map(Number).sort(function(a,b){return a-b;});
+    var area=0;
+    for (var i=0;i<xs.length-1;i++){
+      var a=xs[i], b=xs[i+1];
+      var diffA = heightAt(a,topPts)-heightAt(a,basePts);
+      var diffB = heightAt(b,topPts)-heightAt(b,basePts);
+      area += (diffA+diffB)/2 * (b-a);
+    }
+    return area;
+  }
+  function topSegments(pts){
+    var segs=[];
+    for (var i=0;i<pts.length-1;i++){
+      var dx=pts[i+1].x-pts[i].x, dh=pts[i+1].h-pts[i].h;
+      segs.push({from:pts[i], to:pts[i+1], len:Math.sqrt(dx*dx+dh*dh)});
+    }
+    return segs;
+  }
+
+  function doorFitsEverywhere(section){
+    if (!section.doorEnabled) return true;
+    var topPts = sortedPoints(section);
+    var basePts = sortedBasePoints(section);
+    var x0=section.doorOffset, x1=section.doorOffset+section.doorWidth;
+    var steps=24;
+    for (var i=0;i<=steps;i++){
+      var x = x0 + (x1-x0)*i/steps;
+      var clear = heightAt(x,topPts) - heightAt(x,basePts);
+      if (clear < section.doorHeight - EPS) return false;
+    }
+    return true;
+  }
+  function doorInBounds(section){
+    if (!section.doorEnabled) return true;
+    var W = wallWidth(section);
+    return section.doorOffset>=0 && (section.doorOffset+section.doorWidth)<=W && section.doorWidth>0;
+  }
+
+  // ---------- framing (per section) ----------
+  function computeFraming(section){
+    var topPts = sortedPoints(section);
+    var basePts = sortedBasePoints(section);
+    var W = wallWidth(section);
+    var spacing = state.studSpacing;
+    var doorOn = section.doorEnabled && doorInBounds(section);
+    var dx0 = doorOn? section.doorOffset : null;
+    var dx1 = doorOn? section.doorOffset+section.doorWidth : null;
+    // door sits on the LOCAL base (sill) height at its left jamb — relevant when the
+    // section's bottom edge is raised and/or sloped instead of sitting flat on the floor
+    var doorSill = doorOn ? heightAt(dx0, basePts) : null;
+
+    // mandatory stud positions: edges, every top- and base-profile breakpoint, door jambs —
+    // a stud MUST sit exactly here regardless of spacing.
+    var mandSet = {};
+    function addMand(x){ mandSet[Math.round(x)] = true; }
+    addMand(0); addMand(W);
+    topPts.forEach(function(p){ addMand(p.x); });
+    basePts.forEach(function(p){ addMand(p.x); });
+    if (doorOn){ addMand(dx0); addMand(dx1); }
+    var mandList = Object.keys(mandSet).map(Number).sort(function(a,b){return a-b;});
+
+    // between consecutive mandatory points, fill with EVENLY spaced studs (bay width
+    // <= spacing) rather than a fixed grid anchored at x=0 — a 700mm run at 600mm
+    // spacing becomes two 350mm bays, not a 600mm bay plus a 100mm sliver.
+    var xsSet = {};
+    function addX(x){ xsSet[Math.round(x)] = true; }
+    mandList.forEach(function(x){ addX(x); });
+    for (var mi=0; mi<mandList.length-1; mi++){
+      var a=mandList[mi], b=mandList[mi+1], gap=b-a;
+      if (gap > spacing + EPS){
+        var numBays = Math.ceil(gap/spacing);
+        var actual = gap/numBays;
+        for (var k=1;k<numBays;k++) addX(a + actual*k);
+      }
+    }
+    var xs = Object.keys(xsSet).map(Number).sort(function(a,b){return a-b;});
+
+    var fieldStuds = [];
+    var crippleStuds = [];
+    xs.forEach(function(x){
+      var insideDoor = doorOn && x>dx0+EPS && x<dx1-EPS;
+      var isJamb = doorOn && (Math.abs(x-dx0)<EPS || Math.abs(x-dx1)<EPS);
+      if (insideDoor){
+        var len = heightAt(x,topPts) - (doorSill+section.doorHeight) - state.profileWidth - (TRACK_DEDUCTION/2);
+        if (len > 60){
+          crippleStuds.push({x:x, len:len});
+        }
+        return;
+      }
+      var full = heightAt(x,topPts) - heightAt(x,basePts) - TRACK_DEDUCTION;
+      if (full < 10) full = 10;
+      var jambIsUA = isJamb && state.doorJambType==='UA';
+      var jambCount = isJamb ? (jambIsUA?1:2) : 1;
+      fieldStuds.push({x:x, len:full, kind:isJamb?'jamb':'field', material:jambIsUA?'ua':'cw', count:jambCount});
+    });
+
+    var segs = topSegments(topPts);
+    var baseSegs = topSegments(basePts);
+
+    var baseOnFloor = basePts.every(function(p){ return Math.abs(p.h)<EPS; });
+    var uwPieces = [];
+    if (baseSegs.length<=1){
+      var bottomLabel = baseOnFloor ? "UW alsó vezetősín (padló)" : "UW alsó vezetősín (emelt)";
+      uwPieces.push({label:bottomLabel, len:Math.round(baseSegs.length?baseSegs[0].len:W), qty:1});
+    } else {
+      baseSegs.forEach(function(s,i){
+        uwPieces.push({label:"UW alsó vezetősín — "+(i+1)+". szakasz", len:Math.round(s.len), qty:1});
+      });
+    }
+    segs.forEach(function(s,i){
+      uwPieces.push({label:"UW felső vezetősín — "+(i+1)+". szakasz", len:Math.round(s.len), qty:1});
+    });
+    if (doorOn){
+      uwPieces.push({label:"UW fejléc (ajtó fölött)", len:section.doorWidth+HEADER_OVERLAP, qty:1});
+    }
+
+    var cwPieces = [];
+    var uaPieces = [];
+    fieldStuds.forEach(function(s){
+      if (s.kind==='jamb' && s.material==='ua'){
+        uaPieces.push({label:"UA tokoszlop (ajtó mellett)", len:Math.round(s.len)});
+        return;
+      }
+      var label = s.kind==='jamb' ? "CW tokoszlop (dupla, ajtó mellett)" : "CW mezőoszlop";
+      for (var i=0;i<s.count;i++) cwPieces.push({label:label, len:Math.round(s.len)});
+    });
+    crippleStuds.forEach(function(s){
+      cwPieces.push({label:"CW törpeoszlop (fejléc fölött)", len:Math.round(s.len)});
+    });
+
+    return {
+      section:section, pts:topPts, basePts:basePts, W:W, segs:segs, baseSegs:baseSegs,
+      fieldStuds:fieldStuds, crippleStuds:crippleStuds, doorSill:doorSill,
+      uwPieces:uwPieces, cwPieces:cwPieces, uaPieces:uaPieces, doorOn:doorOn, dx0:dx0, dx1:dx1
+    };
+  }
+
+  function allFramings(){
+    return state.sections.map(function(sec){ return computeFraming(sec); });
+  }
+
+  // ---------- bin packing (best-fit decreasing) ----------
+  function binPack(lengths, stock){
+    var kerf = 5;
+    var items = lengths.slice().sort(function(a,b){return b-a;});
+    var bins = [];
+    var oversize = [];
+    items.forEach(function(len){
+      if (len > stock){ oversize.push(len); return; }
+      var bestIdx=-1, bestRem=Infinity;
+      for (var i=0;i<bins.length;i++){
+        if (bins[i] >= len+kerf && bins[i] < bestRem){ bestRem=bins[i]; bestIdx=i; }
+      }
+      if (bestIdx>=0) bins[bestIdx] -= (len+kerf);
+      else bins.push(stock-len-kerf);
+    });
+    var totalStock = bins.length*stock;
+    var usedLen = items.filter(function(l){return l<=stock;}).reduce(function(a,b){return a+b;},0);
+    return {
+      bars: bins.length, totalStockLen: totalStock, usedLen: usedLen,
+      wasteLen: Math.max(totalStock-usedLen,0),
+      utilPct: totalStock>0 ? (usedLen/totalStock*100) : 0,
+      oversize: oversize
+    };
+  }
+
+  // ---------- materials (aggregated across all sections) ----------
+  function computeMaterials(frList){
+    var netAreaMm2Total=0, doorAreaMm2Total=0;
+    var uwLens=[], cwLens=[], uaLens=[];
+    var columnCount=0;
+    frList.forEach(function(fr){
+      netAreaMm2Total += polygonAreaMm2(fr.pts, fr.basePts);
+      if (fr.doorOn) doorAreaMm2Total += fr.section.doorWidth*fr.section.doorHeight;
+      fr.uwPieces.forEach(function(p){ for(var i=0;i<p.qty;i++) uwLens.push(p.len); });
+      fr.cwPieces.forEach(function(p){ cwLens.push(p.len); });
+      fr.uaPieces.forEach(function(p){ uaLens.push(p.len); });
+      columnCount += fr.fieldStuds.reduce(function(a,s){return a+s.count;},0) + fr.crippleStuds.length;
+    });
+
+    var wallAreaM2 = (netAreaMm2Total - doorAreaMm2Total) / 1e6;
+    var boardFaceAreaM2 = wallAreaM2 * state.sides * state.layers;
+    var boardAreaWithWaste = boardFaceAreaM2 * (1+state.wastePct/100);
+    var oneBoardAreaM2 = (state.boardW/1000)*(state.boardH/1000);
+    var boardsNeeded = Math.ceil(boardAreaWithWaste / oneBoardAreaM2);
+
+    var insAreaM2 = wallAreaM2;
+    var insAreaWithWaste = insAreaM2 * (1+state.wastePct/100);
+    var insPacks = state.insulationEnabled ? Math.ceil(insAreaWithWaste/state.insPackArea) : 0;
+
+    var uwLenTotal = uwLens.reduce(function(a,b){return a+b;},0);
+    var cwLenTotal = cwLens.reduce(function(a,b){return a+b;},0);
+    var uaLenTotal = uaLens.reduce(function(a,b){return a+b;},0);
+
+    var uwPack = binPack(uwLens, state.stockBarLen);
+    var cwPack = binPack(cwLens, state.stockBarLen);
+    var uaPack = binPack(uaLens, state.stockBarLen);
+
+    var allTrackLen = 0;
+    frList.forEach(function(fr){
+      fr.uwPieces.forEach(function(p){ if (p.label.indexOf("fejléc")<0) allTrackLen += p.len*p.qty; });
+    });
+    var trackPieceCount = frList.reduce(function(a,fr){return a+fr.uwPieces.length;},0);
+    var dubelCount = Math.ceil(allTrackLen/state.trackFixSpacing) + trackPieceCount*2;
+    var cwJointScrews = columnCount * 2 * 2;
+    var uaJointScrews = uaLens.length * 2 * 4;
+    var cornerJointScrews = Math.max(state.sections.length-1,0) * 4;
+    var boardScrews = Math.ceil(boardFaceAreaM2 * state.screwsPerM2);
+
+    return {
+      wallAreaM2:wallAreaM2, doorAreaMm2:doorAreaMm2Total,
+      boardFaceAreaM2:boardFaceAreaM2, boardsNeeded:boardsNeeded, oneBoardAreaM2:oneBoardAreaM2,
+      insAreaM2:insAreaM2, insPacks:insPacks,
+      uwLenTotal:uwLenTotal, cwLenTotal:cwLenTotal, uaLenTotal:uaLenTotal,
+      uwPack:uwPack, cwPack:cwPack, uaPack:uaPack,
+      dubelCount:dubelCount, cwJointScrews:cwJointScrews, uaJointScrews:uaJointScrews,
+      cornerJointScrews:cornerJointScrews,
+      boardScrews:boardScrews, columnCount:columnCount
+    };
+  }
+
+  // ---------- section tabs ----------
+  function renderSegTabs(){
+    var host = document.getElementById("segTabs");
+    host.innerHTML = "";
+    state.sections.forEach(function(sec){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "seg-tab"+(sec.id===state.activeSectionId?" active":"");
+      var label = document.createElement("span");
+      label.textContent = sec.name;
+      btn.appendChild(label);
+      if (state.sections.length>1){
+        var rm = document.createElement("span");
+        rm.className = "rm"; rm.textContent = "✕"; rm.title = "Szakasz törlése";
+        rm.addEventListener("click", function(ev){
+          ev.stopPropagation();
+          removeSection(sec.id);
+        });
+        btn.appendChild(rm);
+      }
+      btn.addEventListener("click", function(){
+        state.activeSectionId = sec.id;
+        renderSegTabs();
+        applySectionToForm();
+        renderPointsTable();
+        renderBasePointsTable();
+        recalcAll();
+      });
+      host.appendChild(btn);
+    });
+  }
+  function addSection(){
+    state.nextId = (state.nextId||2)+1;
+    var n = state.sections.length+1;
+    var ref = getActiveSection();
+    var maxH = Math.max.apply(null, ref.points.map(function(p){return p.h;}));
+    var ns = {
+      id:"s"+state.nextId, name:n+". falszakasz",
+      points:[{x:0,h:maxH},{x:1200,h:maxH}],
+      customBase:false,
+      doorEnabled:false, doorOffset:0, doorWidth:900, doorHeight:2050, doorDouble:false
+    };
+    state.sections.push(ns);
+    state.activeSectionId = ns.id;
+    renderSegTabs();
+    applySectionToForm();
+    renderPointsTable();
+    renderBasePointsTable();
+    recalcAll();
+  }
+  function removeSection(id){
+    if (state.sections.length<=1) return;
+    var idx = state.sections.findIndex(function(s){return s.id===id;});
+    if (idx<0) return;
+    state.sections.splice(idx,1);
+    if (state.activeSectionId===id){
+      state.activeSectionId = state.sections[0].id;
+    }
+    renderSegTabs();
+    applySectionToForm();
+    renderPointsTable();
+    renderBasePointsTable();
+    recalcAll();
+  }
+
+  // ---------- points table (active section) ----------
+  function renderPointsTable(){
+    var tbody = document.getElementById("ptsBody");
+    tbody.innerHTML = "";
+    var section = getActiveSection();
+    var pts = sortedPoints(section);
+    pts.forEach(function(p, idx){
+      var tr = document.createElement("tr");
+      var isFirst = idx===0, isLast = idx===pts.length-1;
+
+      var tdX = document.createElement("td");
+      var xInput = document.createElement("input");
+      xInput.type="number"; xInput.step="10"; xInput.value=p.x;
+      if (isFirst) xInput.disabled = true;
+      xInput.addEventListener("change", function(){
+        p.x = parseFloat(xInput.value)||0;
+        if (isLast && section.basePoints && section.basePoints.length>=2){
+          var sortedBase = sortedArr(section.basePoints);
+          sortedBase[sortedBase.length-1].x = p.x;
+        }
+        recalcAll();
+        if (isLast) renderBasePointsTable();
+      });
+      tdX.appendChild(xInput);
+
+      var tdH = document.createElement("td");
+      var hInput = document.createElement("input");
+      hInput.type="number"; hInput.step="10"; hInput.value=p.h;
+      hInput.addEventListener("change", function(){
+        p.h = parseFloat(hInput.value)||0;
+        recalcAll();
+      });
+      tdH.appendChild(hInput);
+
+      var tdBtn = document.createElement("td");
+      if (!isFirst && !isLast){
+        var rm = document.createElement("button");
+        rm.type="button"; rm.className="small ghost"; rm.textContent="✕";
+        rm.title="Töréspont törlése";
+        rm.addEventListener("click", function(){
+          var realIdx = section.points.indexOf(p);
+          section.points.splice(realIdx,1);
+          recalcAll(); renderPointsTable();
+        });
+        tdBtn.appendChild(rm);
+      }
+      tr.appendChild(tdX); tr.appendChild(tdH); tr.appendChild(tdBtn);
+      tbody.appendChild(tr);
+    });
+    document.getElementById("widthDisplay").value = fmt(wallWidth(section))+" mm";
+  }
+
+  function addPoint(){
+    var section = getActiveSection();
+    var pts = sortedPoints(section);
+    if (pts.length<2) return;
+    var i = Math.floor((pts.length-1)/2);
+    var a=pts[i], b=pts[i+1];
+    var nx = Math.round((a.x+b.x)/2/10)*10;
+    var nh = Math.round((a.h+b.h)/2/10)*10;
+    if (nx<=a.x || nx>=b.x) nx = a.x+1;
+    section.points.push({x:nx, h:nh});
+    recalcAll(); renderPointsTable();
+  }
+
+  // ---------- base-edge points table (active section) ----------
+  function ensureBasePoints(section){
+    if (!section.basePoints || section.basePoints.length<2){
+      section.basePoints = [{x:0,h:0},{x:wallWidth(section),h:0}];
+    }
+    return section.basePoints;
+  }
+  function renderBasePointsTable(){
+    var section = getActiveSection();
+    document.getElementById("customBase").checked = !!section.customBase;
+    document.getElementById("baseTable").style.display = section.customBase ? "" : "none";
+    document.getElementById("addBasePointBtn").style.display = section.customBase ? "" : "none";
+    if (!section.customBase) return;
+    var basePts = ensureBasePoints(section);
+    var W = wallWidth(section);
+    var sorted = sortedArr(basePts);
+    sorted[sorted.length-1].x = W; // last base point always tracks the section width
+    var tbody = document.getElementById("baseBody");
+    tbody.innerHTML = "";
+    sorted.forEach(function(p, idx){
+      var tr = document.createElement("tr");
+      var isFirst = idx===0, isLast = idx===sorted.length-1;
+
+      var tdX = document.createElement("td");
+      var xInput = document.createElement("input");
+      xInput.type="number"; xInput.step="10"; xInput.value=p.x;
+      if (isFirst || isLast) xInput.disabled = true;
+      xInput.addEventListener("change", function(){
+        p.x = parseFloat(xInput.value)||0;
+        recalcAll();
+      });
+      tdX.appendChild(xInput);
+
+      var tdH = document.createElement("td");
+      var hInput = document.createElement("input");
+      hInput.type="number"; hInput.step="10"; hInput.value=p.h;
+      hInput.addEventListener("change", function(){
+        p.h = parseFloat(hInput.value)||0;
+        recalcAll();
+      });
+      tdH.appendChild(hInput);
+
+      var tdBtn = document.createElement("td");
+      if (!isFirst && !isLast){
+        var rm = document.createElement("button");
+        rm.type="button"; rm.className="small ghost"; rm.textContent="✕";
+        rm.title="Töréspont törlése";
+        rm.addEventListener("click", function(){
+          var realIdx = section.basePoints.indexOf(p);
+          section.basePoints.splice(realIdx,1);
+          recalcAll(); renderBasePointsTable();
+        });
+        tdBtn.appendChild(rm);
+      }
+      tr.appendChild(tdX); tr.appendChild(tdH); tr.appendChild(tdBtn);
+      tbody.appendChild(tr);
+    });
+  }
+  function addBasePoint(){
+    var section = getActiveSection();
+    if (!section.customBase) return;
+    var pts = sortedArr(ensureBasePoints(section));
+    if (pts.length<2) return;
+    var i = Math.floor((pts.length-1)/2);
+    var a=pts[i], b=pts[i+1];
+    var nx = Math.round((a.x+b.x)/2/10)*10;
+    var nh = Math.round((a.h+b.h)/2/10)*10;
+    if (nx<=a.x || nx>=b.x) nx = a.x+1;
+    section.basePoints.push({x:nx, h:nh});
+    recalcAll(); renderBasePointsTable();
+  }
+
+  // ---------- SVG drawing (per section) ----------
+  function buildSVG(fr){
+    var section = fr.section;
+    var pts = fr.pts, basePts = fr.basePts, W = fr.W;
+    var maxH = Math.max.apply(null, pts.map(function(p){return p.h;}));
+    var minBaseH = Math.min.apply(null, basePts.map(function(p){return p.h;}));
+    var minH = Math.min(0, minBaseH);
+    var floating = minBaseH > 5; // base never touches the floor — show a floor reference line
+    var range = Math.max(maxH-minH, 1);
+    var padL=56, padR=28, padT=28, padB=46;
+    var availW = 760;
+    var scale = Math.min(availW/Math.max(W,1), 360/range, 0.16);
+    var vw = W*scale, vh = range*scale;
+    var svgW = vw+padL+padR, svgH = vh+padT+padB;
+
+    function X(x){ return padL + x*scale; }
+    function Y(h){ return padT + (maxH-h)*scale; }
+
+    var parts = [];
+    parts.push('<svg xmlns="http://www.w3.org/2000/svg" width="'+svgW+'" height="'+svgH+'" viewBox="0 0 '+svgW+' '+svgH+'">');
+
+    // closed outline: along the base (left->right), up the right edge, back along the
+    // top (right->left), closed by SVG's implicit close back down the left edge
+    var wallPathD = "M"+X(basePts[0].x)+","+Y(basePts[0].h);
+    for (var bi=1; bi<basePts.length; bi++){ wallPathD += " L"+X(basePts[bi].x)+","+Y(basePts[bi].h); }
+    wallPathD += " L"+X(W)+","+Y(pts[pts.length-1].h);
+    for (var ti=pts.length-2; ti>=0; ti--){ wallPathD += " L"+X(pts[ti].x)+","+Y(pts[ti].h); }
+    wallPathD += " Z";
+    var outlinePathD = wallPathD;
+    if (fr.doorOn){
+      var hx0=X(fr.dx0), hx1=X(fr.dx1), hy0=Y(fr.doorSill), hy1=Y(fr.doorSill+section.doorHeight);
+      wallPathD += " M"+hx0+","+hy0+" L"+hx0+","+hy1+" L"+hx1+","+hy1+" L"+hx1+","+hy0+" Z";
+    }
+    var clipId = "clip"+section.id;
+
+    parts.push('<defs>');
+    parts.push('<clipPath id="'+clipId+'"><path d="'+wallPathD+'" fill-rule="evenodd"/></clipPath>');
+    parts.push('<pattern id="hatch'+section.id+'" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="var(--line-steel)" stroke-width="1" opacity="0.45"/></pattern>');
+    parts.push('</defs>');
+
+    // outline — always visible, orientation only
+    parts.push('<g class="layer-outline"><path d="'+outlinePathD+'" fill="none" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="3 3"/></g>');
+    if (floating){
+      parts.push('<g class="layer-outline"><line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+X(W)+'" y2="'+Y(0)+'" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="2 4"/>'
+        +'<text x="'+(X(0)+4)+'" y="'+(Y(0)-4)+'" font-size="9" fill="var(--text-muted)" font-family="var(--font-mono)">padlószint (0)</text></g>');
+    }
+
+    // board layer — fill + sheet seam grid, door opening cut out
+    var boardParts = ['<g class="layer-board">'];
+    boardParts.push('<path d="'+wallPathD+'" fill-rule="evenodd" fill="var(--board-fill)" stroke="none"/>');
+    boardParts.push('<g clip-path="url(#'+clipId+')" stroke="var(--board-line)" stroke-width="1">');
+    for (var bx=state.boardW; bx<W; bx+=state.boardW){
+      boardParts.push('<line x1="'+X(bx)+'" y1="'+Y(minH)+'" x2="'+X(bx)+'" y2="'+Y(maxH)+'"/>');
+    }
+    for (var by=minH+state.boardH; by<maxH; by+=state.boardH){
+      boardParts.push('<line x1="'+X(0)+'" y1="'+Y(by)+'" x2="'+X(W)+'" y2="'+Y(by)+'"/>');
+    }
+    boardParts.push('</g></g>');
+    parts.push(boardParts.join(""));
+
+    // insulation layer — hatch fill, door opening cut out
+    if (state.insulationEnabled){
+      parts.push('<g class="layer-insulation"><path d="'+wallPathD+'" fill-rule="evenodd" fill="url(#hatch'+section.id+')" opacity="0.6"/></g>');
+    }
+
+    // profiles layer — tracks, studs, door frame
+    var profParts = ['<g class="layer-profiles">'];
+    for (var bj=0;bj<basePts.length-1;bj++){
+      profParts.push('<line x1="'+X(basePts[bj].x)+'" y1="'+Y(basePts[bj].h)+'" x2="'+X(basePts[bj+1].x)+'" y2="'+Y(basePts[bj+1].h)+'" stroke="var(--line-steel)" stroke-width="5"/>');
+    }
+    for (var i=0;i<pts.length-1;i++){
+      profParts.push('<line x1="'+X(pts[i].x)+'" y1="'+Y(pts[i].h)+'" x2="'+X(pts[i+1].x)+'" y2="'+Y(pts[i+1].h)+'" stroke="var(--line-steel)" stroke-width="5"/>');
+    }
+    profParts.push('<line x1="'+X(0)+'" y1="'+Y(basePts[0].h)+'" x2="'+X(0)+'" y2="'+Y(pts[0].h)+'" stroke="var(--border-strong)" stroke-width="2"/>');
+    profParts.push('<line x1="'+X(W)+'" y1="'+Y(basePts[basePts.length-1].h)+'" x2="'+X(W)+'" y2="'+Y(pts[pts.length-1].h)+'" stroke="var(--border-strong)" stroke-width="2"/>');
+
+    fr.fieldStuds.forEach(function(s){
+      var h = heightAt(s.x, pts);
+      var bh = heightAt(s.x, basePts);
+      var isUA = s.kind==='jamb' && s.material==='ua';
+      var color = s.kind==='jamb' ? (isUA?'var(--warn)':'var(--accent)') : 'var(--text-muted)';
+      var sw = s.kind==='jamb' ? (isUA?6:4) : 2.5;
+      var offs = s.kind==='jamb' ? (isUA?[0]:[-2.5,2.5]) : [0];
+      offs.forEach(function(o){
+        profParts.push('<line x1="'+(X(s.x)+o)+'" y1="'+Y(bh)+'" x2="'+(X(s.x)+o)+'" y2="'+Y(h)+'" stroke="'+color+'" stroke-width="'+sw+'"/>');
+      });
+      if (s.kind!=='jamb'){
+        profParts.push('<text x="'+X(s.x)+'" y="'+(Y(h)-6)+'" font-size="9" fill="var(--text-muted)" text-anchor="middle" font-family="var(--font-mono)">'+fmt(s.len)+'</text>');
+      } else if (isUA){
+        profParts.push('<text x="'+X(s.x)+'" y="'+(Y(h)-8)+'" font-size="9" fill="var(--warn)" text-anchor="middle" font-family="var(--font-mono)" font-weight="700">UA</text>');
+      }
+    });
+    fr.crippleStuds.forEach(function(s){
+      var h = heightAt(s.x, pts);
+      var yTop = Y(h), yBot = Y(h-s.len);
+      profParts.push('<line x1="'+X(s.x)+'" y1="'+yTop+'" x2="'+X(s.x)+'" y2="'+yBot+'" stroke="var(--ok)" stroke-width="2.5" stroke-dasharray="4 3"/>');
+    });
+
+    if (fr.doorOn){
+      var dx0=fr.dx0, dx1=fr.dx1, sill=fr.doorSill, dTop=fr.doorSill+section.doorHeight;
+      profParts.push('<rect x="'+X(dx0)+'" y="'+Y(dTop)+'" width="'+(X(dx1)-X(dx0))+'" height="'+(Y(sill)-Y(dTop))+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 3"/>');
+      profParts.push('<line x1="'+X(dx0)+'" y1="'+Y(dTop)+'" x2="'+X(dx1)+'" y2="'+Y(dTop)+'" stroke="var(--accent)" stroke-width="4"/>');
+      if (section.doorDouble){
+        var mid = (dx0+dx1)/2;
+        profParts.push('<line x1="'+X(mid)+'" y1="'+Y(sill)+'" x2="'+X(mid)+'" y2="'+Y(dTop)+'" stroke="var(--accent)" stroke-width="1.5" opacity="0.6"/>');
+      }
+      profParts.push('<text x="'+((X(dx0)+X(dx1))/2)+'" y="'+((Y(sill)+Y(dTop))/2)+'" font-size="10" fill="var(--accent-ink)" text-anchor="middle" font-family="var(--font-mono)">'+fmt(section.doorWidth)+' × '+fmt(section.doorHeight)+'</text>');
+    }
+    profParts.push('</g>');
+    parts.push(profParts.join(""));
+
+    var dimY = Y(minH)+28;
+    parts.push('<line x1="'+X(0)+'" y1="'+dimY+'" x2="'+X(W)+'" y2="'+dimY+'" stroke="var(--text-muted)" stroke-width="1"/>');
+    parts.push('<text x="'+((X(0)+X(W))/2)+'" y="'+(dimY+14)+'" font-size="11" fill="var(--text-muted)" text-anchor="middle" font-family="var(--font-mono)">'+fmt(W)+' mm</text>');
+
+    pts.forEach(function(p){
+      parts.push('<text x="'+(X(p.x))+'" y="'+(Y(p.h)-10)+'" font-size="10" fill="var(--text)" text-anchor="middle" font-weight="700" font-family="var(--font-mono)">'+fmt(p.h)+'</text>');
+    });
+    var baseIsFlatFloor = basePts.length===2 && Math.abs(basePts[0].h)<EPS && Math.abs(basePts[1].h)<EPS;
+    if (!baseIsFlatFloor){
+      basePts.forEach(function(p){
+        parts.push('<text x="'+(X(p.x))+'" y="'+(Y(p.h)+16)+'" font-size="10" fill="var(--line-steel)" text-anchor="middle" font-weight="700" font-family="var(--font-mono)">'+fmt(p.h)+'</text>');
+      });
+    }
+
+    parts.push('</svg>');
+    return parts.join("");
+  }
+
+  function renderCanvas(frList){
+    var host = document.getElementById("canvasWrap");
+    host.innerHTML = "";
+    frList.forEach(function(fr){
+      var card = document.createElement("div");
+      card.className = "section-card";
+      var maxH = Math.max.apply(null, fr.pts.map(function(p){return p.h;}));
+      var baseHs = fr.basePts.map(function(p){return p.h;});
+      var minBH = Math.min.apply(null, baseHs), maxBH = Math.max.apply(null, baseHs);
+      var baseIsFlat = fr.basePts.length===2 && Math.abs(minBH)<EPS && Math.abs(maxBH)<EPS;
+      var baseInfo = baseIsFlat ? '' : (' · alap '+fmt(minBH)+(maxBH>minBH+EPS?'–'+fmt(maxBH):'')+' mm');
+      card.innerHTML = '<h3><span>'+fr.section.name+'</span><span class="dims">'+fmt(fr.W)+' × '+fmt(maxH)+' mm'+baseInfo+(fr.doorOn?' · ajtó '+fmt(fr.section.doorWidth)+'×'+fmt(fr.section.doorHeight):'')+'</span></h3>'
+        + '<div class="svg-scroll">'+buildSVG(fr)+'</div>';
+      host.appendChild(card);
+    });
+  }
+
+  function applyLayerVisibility(){
+    var host = document.getElementById("canvasWrap");
+    host.classList.toggle("hide-profiles", !state.viewLayers.profiles);
+    host.classList.toggle("hide-board", !state.viewLayers.board);
+    host.classList.toggle("hide-insulation", !state.viewLayers.insulation);
+  }
+
+  // ---------- status / warnings / kpi ----------
+  function renderStatus(frList){
+    var host = document.getElementById("statusPills");
+    host.innerHTML = "";
+    function pill(cls, text){
+      var s = document.createElement("span");
+      s.className = "pill "+cls;
+      s.innerHTML = '<span class="dot"></span>'+text;
+      host.appendChild(s);
+    }
+    pill("ok", state.sections.length+" falszakasz");
+    state.sections.forEach(function(sec){
+      if (sec.doorEnabled){
+        var fits = doorFitsEverywhere(sec) && doorInBounds(sec);
+        pill(fits?"ok":"danger", sec.name+": ajtó "+(fits?"ráfér":"nem fér rá"));
+      }
+    });
+    if (state.insulationEnabled) pill("ok","Szigeteléssel");
+  }
+
+  function renderWarnings(frList, mat){
+    var host = document.getElementById("warnings");
+    host.innerHTML = "";
+    var msgs = [];
+    state.sections.forEach(function(sec){
+      if (sec.doorEnabled && !doorInBounds(sec)){
+        msgs.push(sec.name+": az ajtónyílás részben vagy teljesen a szakasz szélén kívülre esik — módosítsd a pozíciót vagy a méretet.");
+      } else if (sec.doorEnabled && !doorFitsEverywhere(sec)){
+        msgs.push(sec.name+": az ajtó magassága meghaladja a fal magasságát a nyílás egy szakaszán (belelóg a ferde él alá) — told a vízszintes, teljes magasságú részre.");
+      }
+    });
+    if (mat.uwPack.oversize.length || mat.cwPack.oversize.length || mat.uaPack.oversize.length){
+      msgs.push("Van olyan vágandó elem, amely hosszabb a választott szálhossznál — válassz hosszabb profilt, vagy tervezz toldást.");
+    }
+    msgs.forEach(function(m){
+      var d = document.createElement("div");
+      d.className = "warn-banner danger";
+      d.textContent = "⚠ "+m;
+      host.appendChild(d);
+    });
+  }
+
+  function renderKPI(frList, mat){
+    var host = document.getElementById("kpiGrid");
+    host.innerHTML = "";
+    var items = [
+      {label:"Nettó falfelület (összes szakasz)", value:fmt(mat.wallAreaM2,2)+" m²", sub:"nyílások levonva"},
+      {label:"UW profil összesen", value:fmt(mm2m(mat.uwLenTotal),1)+" m", sub:mat.uwPack.bars+" db szál ("+fmt(state.stockBarLen/1000,1)+" m)"},
+      {label:"CW profil összesen", value:fmt(mm2m(mat.cwLenTotal),1)+" m", sub:mat.cwPack.bars+" db szál ("+fmt(state.stockBarLen/1000,1)+" m)"},
+      {label:"Gipszkarton tábla", value:mat.boardsNeeded+" db", sub:fmt(state.boardW)+"×"+fmt(state.boardH)+" mm"},
+      {label:"Szigetelés", value:(state.insulationEnabled?mat.insPacks+" csomag":"–"), sub:fmt(mat.insAreaM2,2)+" m² nettó"},
+      {label:"Oszlopok száma", value: mat.columnCount+" db", sub:"mező + tok + törpe, összes szakasz"}
+    ];
+    if (mat.uaPack.bars>0){
+      items.splice(3,0,{label:"UA profil összesen", value:fmt(mm2m(mat.uaLenTotal),1)+" m", sub:mat.uaPack.bars+" db szál ("+fmt(state.stockBarLen/1000,1)+" m)"});
+    }
+    items.forEach(function(it){
+      var d = document.createElement("div"); d.className="kpi";
+      d.innerHTML = '<div class="label">'+it.label+'</div><div class="value">'+it.value+'</div><div class="sub">'+it.sub+'</div>';
+      host.appendChild(d);
+    });
+  }
+
+  // ---------- cut list ----------
+  function groupPieces(pieces){
+    var map = {};
+    pieces.forEach(function(p){
+      var key = p.label+"|"+p.len;
+      if (!map[key]) map[key] = {label:p.label, len:p.len, qty:0};
+      map[key].qty += (p.qty||1);
+    });
+    return Object.keys(map).map(function(k){return map[k];}).sort(function(a,b){
+      return a.label.localeCompare(b.label,'hu') || (b.len-a.len);
+    });
+  }
+
+  function renderCutlist(frList){
+    var host = document.getElementById("tab-cutlist");
+    var html = "";
+    function table(rows, title){
+      var totalLen = rows.reduce(function(a,r){return a+r.len*r.qty;},0);
+      var totalQty = rows.reduce(function(a,r){return a+r.qty;},0);
+      var h = '<div class="group-title">'+title+' <span class="n">('+totalQty+' db, '+fmt(mm2m(totalLen),1)+' fm)</span></div>';
+      h += '<div class="table-scroll"><table class="data"><thead><tr><th>Elem</th><th>Hossz (mm)</th><th>Darab</th><th>Összesen (m)</th></tr></thead><tbody>';
+      rows.forEach(function(r){
+        h += '<tr><td class="label">'+r.label+'</td><td>'+fmt(r.len)+'</td><td>'+r.qty+'</td><td>'+fmt(mm2m(r.len*r.qty),2)+'</td></tr>';
+      });
+      h += '</tbody></table></div>';
+      return h;
+    }
+    frList.forEach(function(fr){
+      html += '<h3 style="margin:20px 0 6px; font-size:13.5px;">'+fr.section.name+'</h3>';
+      html += table(groupPieces(fr.uwPieces), "UW vezetősínek és fejléc");
+      html += table(groupPieces(fr.cwPieces), "CW oszlopok");
+      if (fr.uaPieces.length){
+        html += table(groupPieces(fr.uaPieces), "UA tokoszlopok (ajtó)");
+      }
+    });
+    host.innerHTML = html;
+  }
+
+  // ---------- materials tab ----------
+  function renderMaterials(frList, mat){
+    var host = document.getElementById("tab-materials");
+    var html = "";
+    html += '<div class="group-title">Fémprofil kihasználtság <span class="n">(összevont vágástervvel, minden szakaszra együtt)</span></div>';
+    html += '<div class="table-scroll"><table class="data"><thead><tr><th>Profil</th><th>Szükséges hossz</th><th>Szál ('+fmt(state.stockBarLen/1000,1)+' m)</th><th>Kihasználtság</th><th>Hulladék</th></tr></thead><tbody>';
+    html += '<tr><td class="label">UW (vezetősín + fejléc)</td><td>'+fmt(mm2m(mat.uwLenTotal),2)+' m</td><td>'+mat.uwPack.bars+' db</td><td>'+fmt(mat.uwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.uwPack.wasteLen),2)+' m</td></tr>';
+    html += '<tr><td class="label">CW (oszlopok)</td><td>'+fmt(mm2m(mat.cwLenTotal),2)+' m</td><td>'+mat.cwPack.bars+' db</td><td>'+fmt(mat.cwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.cwPack.wasteLen),2)+' m</td></tr>';
+    if (mat.uaPack.bars>0){
+      html += '<tr><td class="label">UA (ajtó tokoszlop)</td><td>'+fmt(mm2m(mat.uaLenTotal),2)+' m</td><td>'+mat.uaPack.bars+' db</td><td>'+fmt(mat.uaPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.uaPack.wasteLen),2)+' m</td></tr>';
+    }
+    html += '</tbody></table></div>';
+
+    html += '<div class="group-title">Gipszkarton tábla</div>';
+    html += '<div class="table-scroll"><table class="data"><tbody>';
+    html += '<tr><td class="label">Nettó burkolandó felület (összes szakasz)</td><td>'+fmt(mat.wallAreaM2,2)+' m² × '+state.sides+' oldal × '+state.layers+' réteg</td></tr>';
+    html += '<tr><td class="label">Összes burkolandó felület</td><td>'+fmt(mat.boardFaceAreaM2,2)+' m²</td></tr>';
+    html += '<tr><td class="label">+ hulladék / tartalék ('+state.wastePct+' %)</td><td>'+fmt(mat.boardFaceAreaM2*(1+state.wastePct/100),2)+' m²</td></tr>';
+    html += '<tr><td class="label">Egy tábla felülete</td><td>'+fmt(mat.oneBoardAreaM2,2)+' m²</td></tr>';
+    html += '<tr><td class="label"><strong>Szükséges táblaszám</strong></td><td><strong>'+mat.boardsNeeded+' db</strong></td></tr>';
+    html += '</tbody></table></div>';
+
+    html += '<div class="group-title">Szigetelés</div>';
+    if (state.insulationEnabled){
+      html += '<div class="table-scroll"><table class="data"><tbody>';
+      html += '<tr><td class="label">Szigetelendő felület</td><td>'+fmt(mat.insAreaM2,2)+' m²</td></tr>';
+      html += '<tr><td class="label">+ hulladék / tartalék ('+state.wastePct+' %)</td><td>'+fmt(mat.insAreaM2*(1+state.wastePct/100),2)+' m²</td></tr>';
+      html += '<tr><td class="label">Csomagméret</td><td>'+fmt(state.insPackArea,1)+' m²/csomag</td></tr>';
+      html += '<tr><td class="label"><strong>Szükséges csomagszám</strong></td><td><strong>'+mat.insPacks+' csomag</strong></td></tr>';
+      html += '</tbody></table></div>';
+    } else {
+      html += '<p class="note">Szigetelés nincs bejelölve.</p>';
+    }
+
+    html += '<div class="group-title">Kötőelemek <span class="n">(tájékoztató becslés)</span></div>';
+    html += '<div class="table-scroll"><table class="data"><tbody>';
+    html += '<tr><td class="label">Dübel/csavar a vezetősínekhez</td><td>≈ '+mat.dubelCount+' db</td></tr>';
+    html += '<tr><td class="label">Panelcsavar (CW–UW kötések)</td><td>≈ '+mat.cwJointScrews+' db</td></tr>';
+    if (mat.uaPack.bars>0){
+      html += '<tr><td class="label">Csavar (UA tokoszlop rögzítése, kötésenként ~4 db)</td><td>≈ '+mat.uaJointScrews+' db</td></tr>';
+    }
+    if (state.sections.length>1){
+      html += '<tr><td class="label">Panelcsavar (sarokcsatlakozás, szakaszonként ~4 db)</td><td>≈ '+mat.cornerJointScrews+' db</td></tr>';
+    }
+    html += '<tr><td class="label">TN gipszkarton csavar</td><td>≈ '+mat.boardScrews+' db</td></tr>';
+    html += '</tbody></table></div>';
+
+    host.innerHTML = html;
+  }
+
+  // ---------- shopping list ----------
+  function buildShoppingItems(mat){
+    var items = [];
+    items.push({cat:"Fémprofil", name:"UW "+state.profileWidth+" mm vezetősín", sub:fmt(state.stockBarLen/1000,1)+" m szálhossz", qty:mat.uwPack.bars, unit:"db szál"});
+    items.push({cat:"Fémprofil", name:"CW "+state.profileWidth+" mm osztóborda", sub:fmt(state.stockBarLen/1000,1)+" m szálhossz", qty:mat.cwPack.bars, unit:"db szál"});
+    if (mat.uaPack.bars>0){
+      items.push({cat:"Fémprofil", name:"UA "+state.profileWidth+" mm teherhordó profil (ajtó tokoszlop)", sub:fmt(state.stockBarLen/1000,1)+" m szálhossz", qty:mat.uaPack.bars, unit:"db szál"});
+    }
+    items.push({cat:"Gipszkarton", name:"Gipszkarton tábla "+fmt(state.boardW)+"×"+fmt(state.boardH)+" mm, "+state.boardThickness+" mm", sub:state.sides+" oldal × "+state.layers+" réteg, "+state.sections.length+" szakaszra összesen", qty:mat.boardsNeeded, unit:"db"});
+    if (state.insulationEnabled){
+      items.push({cat:"Szigetelés", name:"Ásványgyapot, "+state.profileWidth+" mm vastag", sub:fmt(state.insPackArea,1)+" m²/csomag", qty:mat.insPacks, unit:"csomag"});
+    }
+    items.push({cat:"Rögzítőelem", name:"Dübel + csavar (vezetősínhez)", sub:fmt(state.trackFixSpacing)+" mm-enként", qty:mat.dubelCount, unit:"db"});
+    items.push({cat:"Rögzítőelem", name:"Panelcsavar (LN, CW–UW kötéshez)", sub:"2 db/kötés", qty:mat.cwJointScrews, unit:"db"});
+    if (mat.uaPack.bars>0){
+      items.push({cat:"Rögzítőelem", name:"Csavar (UA tokoszlop rögzítése az UW-hez)", sub:"~4 db/kötés, nagyobb teherbírású kötés", qty:mat.uaJointScrews, unit:"db"});
+    }
+    if (state.sections.length>1){
+      items.push({cat:"Rögzítőelem", name:"Panelcsavar (szakaszok sarokcsatlakozásához)", sub:"~4 db/sarok", qty:mat.cornerJointScrews, unit:"db"});
+    }
+    items.push({cat:"Rögzítőelem", name:"TN gipszkarton csavar "+(state.boardThickness<=9.5?"3,5×25":"3,9×30")+" mm", sub:fmt(state.screwsPerM2)+" db/m²", qty:mat.boardScrews, unit:"db"});
+    items.push({cat:"Kiegészítő", name:"Tömítőszalag a vezetősín alá", sub:"a sínek teljes hosszában", qty:Math.ceil(mm2m(mat.uwLenTotal)), unit:"fm"});
+    items.push({cat:"Kiegészítő", name:"Hézagoló háló/szalag + glettanyag", sub:"tábla illesztésekhez, becsült mennyiség", qty:Math.ceil(mat.boardFaceAreaM2*0.5), unit:"fm szalag"});
+    return items;
+  }
+
+  function renderShopping(mat){
+    var host = document.getElementById("tab-shopping");
+    var items = buildShoppingItems(mat);
+    var cats = [];
+    items.forEach(function(it){ if (cats.indexOf(it.cat)===-1) cats.push(it.cat); });
+    var html = "";
+    cats.forEach(function(cat){
+      html += '<div class="shop-cat">'+cat+'</div><ul class="shop-list">';
+      items.filter(function(it){return it.cat===cat;}).forEach(function(it){
+        html += '<li><span><span class="item-name">'+it.name+'</span><span class="item-sub">'+it.sub+'</span></span><span class="qty">'+it.qty+' '+it.unit+'</span></li>';
+      });
+      html += '</ul>';
+    });
+    html += '<div style="margin-top:16px; display:flex; gap:8px;"><button type="button" id="downloadListBtn" class="primary">Letöltés .txt</button><button type="button" id="copyListBtn" class="ghost">Vágólapra másolás</button></div>';
+    html += '<div id="copyStatus" class="note" style="margin-top:6px;"></div>';
+    host.innerHTML = html;
+
+    document.getElementById("downloadListBtn").addEventListener("click", function(){
+      var text = shoppingListText(items);
+      var blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = "bevasarlolista_gipszkarton.txt";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+    document.getElementById("copyListBtn").addEventListener("click", function(){
+      var text = shoppingListText(items);
+      var status = document.getElementById("copyStatus");
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){
+          status.textContent = "Vágólapra másolva.";
+        }).catch(function(){ status.textContent = "Nem sikerült a másolás — jelöld ki kézzel."; });
+      } else {
+        status.textContent = "A böngésző nem támogatja a vágólap-hozzáférést.";
+      }
+    });
+  }
+  function shoppingListText(items){
+    var lines = ["BEVÁSÁRLÓLISTA — Gipszkarton fal (lépcsőház lezárás)", state.sections.length+" falszakasz", ""];
+    var cats = [];
+    items.forEach(function(it){ if (cats.indexOf(it.cat)===-1) cats.push(it.cat); });
+    cats.forEach(function(cat){
+      lines.push("# "+cat);
+      items.filter(function(it){return it.cat===cat;}).forEach(function(it){
+        lines.push("- "+it.name+" — "+it.qty+" "+it.unit+" ("+it.sub+")");
+      });
+      lines.push("");
+    });
+    return lines.join("\n");
+  }
+
+  // ---------- form <-> state wiring ----------
+  function bindInputs(){
+    document.getElementById("addPointBtn").addEventListener("click", addPoint);
+    document.getElementById("addBasePointBtn").addEventListener("click", addBasePoint);
+    document.getElementById("addSectionBtn").addEventListener("click", addSection);
+    document.getElementById("customBase").addEventListener("change", function(){
+      var section = getActiveSection();
+      section.customBase = document.getElementById("customBase").checked;
+      if (section.customBase) ensureBasePoints(section);
+      renderBasePointsTable();
+      recalcAll();
+    });
+    document.getElementById("toggleInfo").addEventListener("click", function(){
+      var box = document.getElementById("infoBox");
+      var btn = document.getElementById("toggleInfo");
+      var show = box.style.display==="none";
+      box.style.display = show?"block":"none";
+      btn.textContent = show? "Összefoglaló elrejtése" : "Rövid összefoglaló megmutatása";
+      btn.setAttribute("aria-expanded", show?"true":"false");
+    });
+
+    document.getElementById("sectionName").addEventListener("change", function(){
+      var section = getActiveSection();
+      section.name = document.getElementById("sectionName").value.trim() || section.name;
+      renderSegTabs();
+      recalcAll();
+    });
+
+    var sectionBoundFields = [
+      ["doorEnabled","checkbox"], ["doorOffset","number"], ["doorWidth","number"],
+      ["doorHeight","number"], ["doorDouble","checkbox"]
+    ];
+    sectionBoundFields.forEach(function(f){
+      var el = document.getElementById(f[0]);
+      el.addEventListener("change", function(){
+        var section = getActiveSection();
+        if (f[1]==="checkbox") section[f[0]] = el.checked;
+        else section[f[0]] = parseFloat(el.value)||0;
+        recalcAll();
+      });
+    });
+
+    var globalFields = [
+      ["profileWidth","number"], ["studSpacing","number"], ["sides","number"], ["layers","number"],
+      ["boardThickness","number"], ["insulationEnabled","checkbox"],
+      ["stockBarLen","number"], ["boardW","number"], ["boardH","number"], ["wastePct","number"],
+      ["insPackArea","number"], ["trackFixSpacing","number"], ["screwsPerM2","number"]
+    ];
+    globalFields.forEach(function(f){
+      var el = document.getElementById(f[0]);
+      el.addEventListener("change", function(){
+        if (f[1]==="checkbox") state[f[0]] = el.checked;
+        else {
+          var v = parseFloat(el.value)||0;
+          if (el.min!=="" && v < parseFloat(el.min)) v = parseFloat(el.min);
+          state[f[0]] = v;
+          el.value = v;
+        }
+        recalcAll();
+      });
+    });
+    document.getElementById("doorJambType").addEventListener("change", function(){
+      state.doorJambType = document.getElementById("doorJambType").value;
+      recalcAll();
+    });
+
+    document.querySelectorAll(".tab-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
+        document.querySelectorAll(".tab-panel").forEach(function(p){p.classList.remove("active");});
+        btn.classList.add("active");
+        document.getElementById("tab-"+btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    document.getElementById("printBtn").addEventListener("click", function(){ window.print(); });
+
+    [["layerProfiles","profiles"],["layerBoard","board"],["layerInsulation","insulation"]].forEach(function(pair){
+      document.getElementById(pair[0]).addEventListener("change", function(ev){
+        state.viewLayers[pair[1]] = ev.target.checked;
+        saveState();
+        applyLayerVisibility();
+      });
+    });
+  }
+
+  function applySectionToForm(){
+    var section = getActiveSection();
+    document.getElementById("sectionName").value = section.name;
+    document.getElementById("doorEnabled").checked = section.doorEnabled;
+    document.getElementById("doorOffset").value = section.doorOffset;
+    document.getElementById("doorWidth").value = section.doorWidth;
+    document.getElementById("doorHeight").value = section.doorHeight;
+    document.getElementById("doorDouble").checked = section.doorDouble;
+  }
+
+  function applyGlobalsToForm(){
+    document.getElementById("profileWidth").value = String(state.profileWidth);
+    document.getElementById("studSpacing").value = String(state.studSpacing);
+    document.getElementById("sides").value = String(state.sides);
+    document.getElementById("layers").value = String(state.layers);
+    document.getElementById("boardThickness").value = String(state.boardThickness);
+    document.getElementById("insulationEnabled").checked = state.insulationEnabled;
+    document.getElementById("doorJambType").value = state.doorJambType;
+    document.getElementById("stockBarLen").value = String(state.stockBarLen);
+    document.getElementById("boardW").value = state.boardW;
+    document.getElementById("boardH").value = state.boardH;
+    document.getElementById("wastePct").value = state.wastePct;
+    document.getElementById("insPackArea").value = state.insPackArea;
+    document.getElementById("trackFixSpacing").value = state.trackFixSpacing;
+    document.getElementById("screwsPerM2").value = state.screwsPerM2;
+  }
+
+  function recalcAll(){
+    saveState();
+    var frList = allFramings();
+    var mat = computeMaterials(frList);
+    renderCanvas(frList);
+    renderStatus(frList);
+    renderWarnings(frList, mat);
+    renderKPI(frList, mat);
+    renderCutlist(frList);
+    renderMaterials(frList, mat);
+    renderShopping(mat);
+    document.getElementById("widthDisplay").value = fmt(wallWidth(getActiveSection()))+" mm";
+    applyLayerVisibility();
+  }
+
+  function init(){
+    loadState();
+    bindInputs();
+    applyGlobalsToForm();
+    document.getElementById("layerProfiles").checked = state.viewLayers.profiles;
+    document.getElementById("layerBoard").checked = state.viewLayers.board;
+    document.getElementById("layerInsulation").checked = state.viewLayers.insulation;
+    renderSegTabs();
+    applySectionToForm();
+    renderPointsTable();
+    renderBasePointsTable();
+    recalcAll();
+  }
+
+  if (document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>
