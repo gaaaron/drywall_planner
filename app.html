@@ -261,7 +261,7 @@
             <strong>UA teherhordó profil</strong> (vastagabb, kb. 2 mm-es acéllemezből, ugyanolyan C-szelvény
             méretekben, mint a CW). Az UA nagyobb pontterhelést bír el — szélesebb, nehezebb (pl. kétszárnyú)
             ajtóknál, vagy ha sűrűn lesz rá akasztva/terhelve, érdemesebb az UA-t választani egy dupla CW helyett.</li>
-          <li>A nyílás fölött UW-ből vágott/hajlított fejléc a tokoszlopok közt.</li>
+          <li>A nyílás fölött a tokoszlopok közt fut a fejléc: dupla CW tokoszlopnál UW-ből vágva/hajlítva, UA tokoszlopnál viszont jellemzően egy <strong>CW</strong> profilt szoktak a két UA közé illeszteni/csavarozni (nem UW-t).</li>
           <li>A fejléc és a felső sín közt törpe (kitöltő) CW oszlopok, az alapozstással egyező osztásban.</li>
         </ul>
         <h3>Két falszakasz sarokcsatlakozása</h3>
@@ -669,12 +669,19 @@
     segs.forEach(function(s,i){
       uwPieces.push({label:"UW felső vezetősín — "+(i+1)+". szakasz", len:Math.round(s.len), qty:1});
     });
-    if (doorOn){
-      uwPieces.push({label:"UW fejléc (ajtó fölött)", len:section.doorWidth+HEADER_OVERLAP, qty:1});
-    }
 
     var cwPieces = [];
     var uaPieces = [];
+    // header above the door: a UW channel bent/cut between doubled-CW jambs, but when the
+    // jambs are UA, the header is normally a CW piece fitted/screwed between the two UA uprights
+    if (doorOn){
+      var headerLen = section.doorWidth+HEADER_OVERLAP;
+      if (state.doorJambType==='UA'){
+        cwPieces.push({label:"CW fejléc (ajtó fölött, UA tokoszlopok közt)", len:headerLen});
+      } else {
+        uwPieces.push({label:"UW fejléc (ajtó fölött)", len:headerLen, qty:1});
+      }
+    }
     fieldStuds.forEach(function(s){
       if (s.kind==='jamb' && s.material==='ua'){
         uaPieces.push({label:"UA tokoszlop (ajtó mellett)", len:Math.round(s.len)});
@@ -1307,8 +1314,8 @@
     }
     frList.forEach(function(fr){
       html += '<h3 style="margin:20px 0 6px; font-size:13.5px;">'+fr.section.name+'</h3>';
-      html += table(groupPieces(fr.uwPieces), "UW vezetősínek és fejléc");
-      html += table(groupPieces(fr.cwPieces), "CW oszlopok");
+      html += table(groupPieces(fr.uwPieces), "UW vezetősínek"+(fr.doorOn && state.doorJambType!=='UA' ? " és fejléc" : ""));
+      html += table(groupPieces(fr.cwPieces), "CW oszlopok"+(fr.doorOn && state.doorJambType==='UA' ? " és fejléc" : ""));
       if (fr.uaPieces.length){
         html += table(groupPieces(fr.uaPieces), "UA tokoszlopok (ajtó)");
       }
@@ -1322,8 +1329,10 @@
     var html = "";
     html += '<div class="group-title">Fémprofil kihasználtság <span class="n">(összevont vágástervvel, minden szakaszra együtt, a bepipált méretek közül választva)</span></div>';
     html += '<div class="table-scroll"><table class="data"><thead><tr><th>Profil</th><th>Szükséges hossz</th><th>Szálak</th><th>Kihasználtság</th><th>Hulladék</th></tr></thead><tbody>';
-    html += '<tr><td class="label">UW (vezetősín + fejléc)</td><td>'+fmt(mm2m(mat.uwLenTotal),2)+' m</td><td>'+mat.uwPack.bars+' db ('+packSummary(mat.uwPack)+')</td><td>'+fmt(mat.uwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.uwPack.wasteLen),2)+' m</td></tr>';
-    html += '<tr><td class="label">CW (oszlopok)</td><td>'+fmt(mm2m(mat.cwLenTotal),2)+' m</td><td>'+mat.cwPack.bars+' db ('+packSummary(mat.cwPack)+')</td><td>'+fmt(mat.cwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.cwPack.wasteLen),2)+' m</td></tr>';
+    var uwHasHeader = frList.some(function(fr){ return fr.doorOn && state.doorJambType!=='UA'; });
+    var cwHasHeader = frList.some(function(fr){ return fr.doorOn && state.doorJambType==='UA'; });
+    html += '<tr><td class="label">UW (vezetősín'+(uwHasHeader?' + fejléc':'')+')</td><td>'+fmt(mm2m(mat.uwLenTotal),2)+' m</td><td>'+mat.uwPack.bars+' db ('+packSummary(mat.uwPack)+')</td><td>'+fmt(mat.uwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.uwPack.wasteLen),2)+' m</td></tr>';
+    html += '<tr><td class="label">CW (oszlopok'+(cwHasHeader?' + fejléc':'')+')</td><td>'+fmt(mm2m(mat.cwLenTotal),2)+' m</td><td>'+mat.cwPack.bars+' db ('+packSummary(mat.cwPack)+')</td><td>'+fmt(mat.cwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.cwPack.wasteLen),2)+' m</td></tr>';
     if (mat.uaPack.bars>0){
       html += '<tr><td class="label">UA (ajtó tokoszlop)</td><td>'+fmt(mm2m(mat.uaLenTotal),2)+' m</td><td>'+mat.uaPack.bars+' db ('+packSummary(mat.uaPack)+')</td><td>'+fmt(mat.uaPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.uaPack.wasteLen),2)+' m</td></tr>';
     }
