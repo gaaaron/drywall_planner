@@ -110,6 +110,21 @@
   .seg-tab.active .rm{background:rgba(255,255,255,0.25);}
   .corner-note{font-size:11.5px; color:var(--text-muted); margin:4px 0 12px; line-height:1.5;}
 
+  .stocklen-box{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:6px;}
+  .stocklen-chip{
+    display:inline-flex; align-items:center; gap:5px; padding:5px 9px; border-radius:999px;
+    border:1px solid var(--border-strong); background:var(--surface-2); font-size:12px; font-weight:700;
+    cursor:pointer; color:var(--text-muted); user-select:none;
+  }
+  .stocklen-chip input{width:13px;height:13px; accent-color:var(--accent); margin:0;}
+  .stocklen-chip.on{background:var(--accent-soft); color:var(--accent-ink); border-color:var(--accent);}
+  .stocklen-chip .rm{
+    width:15px;height:15px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.08); font-weight:400; line-height:1; font-size:10px;
+  }
+  .stocklen-add{display:flex; gap:6px; align-items:center; margin-bottom:10px;}
+  .stocklen-add input{width:90px; flex:0 0 auto;}
+
   /* main area */
   .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;}
   .topbar .status-pills{display:flex; gap:8px; flex-wrap:wrap;}
@@ -365,14 +380,22 @@
 
     <div class="section">
       <h2>Anyagkészlet (beszerezhető méretek)</h2>
-      <div class="field"><label>Profil szálhossz (UW és CW egyaránt)</label>
-        <select id="stockBarLen">
-          <option value="3000">3,0 m</option>
-          <option value="4000">4,0 m</option>
-          <option value="5000">5,0 m</option>
-          <option value="6000" selected>6,0 m</option>
-        </select>
+      <div class="field">
+        <label>UW szálhosszak <span class="hint">(ami pipálva van, abból válogat a program)</span></label>
+        <div class="stocklen-box" id="stockLenUW"></div>
+        <div class="stocklen-add" id="stockLenUWAdd"></div>
       </div>
+      <div class="field">
+        <label>CW szálhosszak</label>
+        <div class="stocklen-box" id="stockLenCW"></div>
+        <div class="stocklen-add" id="stockLenCWAdd"></div>
+      </div>
+      <div class="field">
+        <label>UA szálhosszak</label>
+        <div class="stocklen-box" id="stockLenUA"></div>
+        <div class="stocklen-add" id="stockLenUAAdd"></div>
+      </div>
+      <p class="note">A program minden vágandó elemhez — szakaszonként összevontan — a hulladékot minimalizálva választ a bepipált méretek közül; ha egy elem egyik elérhető méretbe sem fér bele, figyelmeztetést kapsz.</p>
       <div class="row">
         <div class="field"><label>Gipszkarton tábla szélesség (mm)</label><input type="number" id="boardW" value="1200" step="10"></div>
         <div class="field"><label>Tábla hossz (mm)</label><input type="number" id="boardH" value="2600" step="10"></div>
@@ -457,11 +480,13 @@
       ],
       profileWidth:75, studSpacing:600, sides:2, layers:1, boardThickness:12.5,
       insulationEnabled:true, doorJambType:"doubleCW",
-      stockBarLen:6000, boardW:1200, boardH:2600, wastePct:12, insPackArea:5.5,
+      stockLens:{UW:[3000,4000,6000], CW:[3000,4000,6000], UA:[3000,4000,6000]},
+      boardW:1200, boardH:2600, wastePct:12, insPackArea:5.5,
       trackFixSpacing:600, screwsPerM2:20,
       viewLayers:{profiles:true, board:true, insulation:true}
     };
   }
+  var STOCK_PRESETS = [2500,3000,3500,4000,4500,5000,6000];
   var state = defaultState();
 
   function loadState(){
@@ -473,6 +498,10 @@
           state = saved;
           if (!state.viewLayers) state.viewLayers = {profiles:true, board:true, insulation:true};
           if (!state.doorJambType) state.doorJambType = "doubleCW";
+          if (!state.stockLens){
+            var migrated = state.stockBarLen || 6000;
+            state.stockLens = {UW:[migrated], CW:[migrated], UA:[migrated]};
+          }
         }
       }
     }catch(e){}
@@ -669,29 +698,111 @@
     return state.sections.map(function(sec){ return computeFraming(sec); });
   }
 
-  // ---------- bin packing (best-fit decreasing) ----------
-  function binPack(lengths, stock){
+  // ---------- bin packing across several available stock lengths ----------
+  // Best-fit-decreasing, but when a new bar must be opened it picks the SMALLEST
+  // available stock length that still fits the piece — minimizes waste instead of
+  // always reaching for one fixed bar length.
+  function binPackMulti(lengths, stockLens){
     var kerf = 5;
+    var avail = (stockLens||[]).slice().filter(function(s){return s>0;}).sort(function(a,b){return a-b;});
     var items = lengths.slice().sort(function(a,b){return b-a;});
-    var bins = [];
+    var bins = []; // {stock, remaining}
     var oversize = [];
     items.forEach(function(len){
-      if (len > stock){ oversize.push(len); return; }
       var bestIdx=-1, bestRem=Infinity;
       for (var i=0;i<bins.length;i++){
-        if (bins[i] >= len+kerf && bins[i] < bestRem){ bestRem=bins[i]; bestIdx=i; }
+        if (bins[i].remaining >= len+kerf && bins[i].remaining < bestRem){ bestRem=bins[i].remaining; bestIdx=i; }
       }
-      if (bestIdx>=0) bins[bestIdx] -= (len+kerf);
-      else bins.push(stock-len-kerf);
+      if (bestIdx>=0){ bins[bestIdx].remaining -= (len+kerf); return; }
+      var chosen = -1;
+      for (var j=0;j<avail.length;j++){ if (avail[j] >= len+kerf){ chosen=avail[j]; break; } }
+      if (chosen<0){ oversize.push(len); return; }
+      bins.push({stock:chosen, remaining:chosen-len-kerf});
     });
-    var totalStock = bins.length*stock;
-    var usedLen = items.filter(function(l){return l<=stock;}).reduce(function(a,b){return a+b;},0);
+    var byStock = {};
+    bins.forEach(function(b){ byStock[b.stock] = (byStock[b.stock]||0)+1; });
+    var totalStock = bins.reduce(function(a,b){return a+b.stock;},0);
+    var usedLen = items.reduce(function(a,l){ return a + (avail.some(function(s){return s>=l+kerf;}) ? l : 0); },0);
     return {
-      bars: bins.length, totalStockLen: totalStock, usedLen: usedLen,
+      bars: bins.length, byStock: byStock, totalStockLen: totalStock, usedLen: usedLen,
       wasteLen: Math.max(totalStock-usedLen,0),
       utilPct: totalStock>0 ? (usedLen/totalStock*100) : 0,
       oversize: oversize
     };
+  }
+  function packSummary(pack){
+    var lens = Object.keys(pack.byStock).map(Number).sort(function(a,b){return b-a;});
+    if (!lens.length) return "–";
+    return lens.map(function(l){ return pack.byStock[l]+"×"+fmt(l/1000,1)+" m"; }).join(" + ");
+  }
+
+  // ---------- per-profile-type available stock lengths ----------
+  function toggleStockLen(type, len, on){
+    var arr = state.stockLens[type];
+    var idx = arr.indexOf(len);
+    if (on && idx===-1) arr.push(len);
+    if (!on && idx!==-1) arr.splice(idx,1);
+    arr.sort(function(a,b){return a-b;});
+    renderStockLens(type);
+    recalcAll();
+  }
+  function addCustomStockLen(type, len){
+    var arr = state.stockLens[type];
+    if (arr.indexOf(len)===-1){ arr.push(len); arr.sort(function(a,b){return a-b;}); }
+    renderStockLens(type);
+    recalcAll();
+  }
+  function removeStockLen(type, len){
+    var arr = state.stockLens[type];
+    var idx = arr.indexOf(len);
+    if (idx!==-1) arr.splice(idx,1);
+    renderStockLens(type);
+    recalcAll();
+  }
+  function renderStockLens(type){
+    var host = document.getElementById("stockLen"+type);
+    host.innerHTML = "";
+    var arr = state.stockLens[type];
+    var allLens = STOCK_PRESETS.slice();
+    arr.forEach(function(l){ if (allLens.indexOf(l)===-1) allLens.push(l); });
+    allLens.sort(function(a,b){return a-b;});
+    allLens.forEach(function(l){
+      var isCustom = STOCK_PRESETS.indexOf(l)===-1;
+      var checked = arr.indexOf(l)!==-1;
+      var chip = document.createElement("label");
+      chip.className = "stocklen-chip"+(checked?" on":"");
+      var cb = document.createElement("input");
+      cb.type="checkbox"; cb.checked=checked;
+      cb.addEventListener("change", function(){ toggleStockLen(type, l, cb.checked); });
+      chip.appendChild(cb);
+      var txt = document.createElement("span");
+      txt.textContent = fmt(l/1000,1)+" m";
+      chip.appendChild(txt);
+      if (isCustom){
+        var rm = document.createElement("span");
+        rm.className="rm"; rm.textContent="✕"; rm.title="Egyéni méret törlése a listából";
+        rm.addEventListener("click", function(ev){
+          ev.preventDefault(); ev.stopPropagation();
+          removeStockLen(type, l);
+        });
+        chip.appendChild(rm);
+      }
+      host.appendChild(chip);
+    });
+  }
+  function setupStockLenAdd(type){
+    var host = document.getElementById("stockLen"+type+"Add");
+    host.innerHTML = "";
+    var input = document.createElement("input");
+    input.type="number"; input.step="50"; input.min="100"; input.placeholder="egyéni, mm";
+    var btn = document.createElement("button");
+    btn.type="button"; btn.className="small ghost";
+    btn.textContent = "+ Egyéni hossz";
+    btn.addEventListener("click", function(){
+      var v = Math.round(parseFloat(input.value));
+      if (v>0){ addCustomStockLen(type, v); input.value=""; }
+    });
+    host.appendChild(input); host.appendChild(btn);
   }
 
   // ---------- materials (aggregated across all sections) ----------
@@ -722,9 +833,9 @@
     var cwLenTotal = cwLens.reduce(function(a,b){return a+b;},0);
     var uaLenTotal = uaLens.reduce(function(a,b){return a+b;},0);
 
-    var uwPack = binPack(uwLens, state.stockBarLen);
-    var cwPack = binPack(cwLens, state.stockBarLen);
-    var uaPack = binPack(uaLens, state.stockBarLen);
+    var uwPack = binPackMulti(uwLens, state.stockLens.UW);
+    var cwPack = binPackMulti(cwLens, state.stockLens.CW);
+    var uaPack = binPackMulti(uaLens, state.stockLens.UA);
 
     var allTrackLen = 0;
     frList.forEach(function(fr){
@@ -1136,7 +1247,7 @@
       }
     });
     if (mat.uwPack.oversize.length || mat.cwPack.oversize.length || mat.uaPack.oversize.length){
-      msgs.push("Van olyan vágandó elem, amely hosszabb a választott szálhossznál — válassz hosszabb profilt, vagy tervezz toldást.");
+      msgs.push("Van olyan vágandó elem, amely az adott profiltípusnál bepipált egyik szálhosszba sem fér bele — pipálj be hosszabb méretet is, vagy tervezz toldást.");
     }
     msgs.forEach(function(m){
       var d = document.createElement("div");
@@ -1151,14 +1262,14 @@
     host.innerHTML = "";
     var items = [
       {label:"Nettó falfelület (összes szakasz)", value:fmt(mat.wallAreaM2,2)+" m²", sub:"nyílások levonva"},
-      {label:"UW profil összesen", value:fmt(mm2m(mat.uwLenTotal),1)+" m", sub:mat.uwPack.bars+" db szál ("+fmt(state.stockBarLen/1000,1)+" m)"},
-      {label:"CW profil összesen", value:fmt(mm2m(mat.cwLenTotal),1)+" m", sub:mat.cwPack.bars+" db szál ("+fmt(state.stockBarLen/1000,1)+" m)"},
+      {label:"UW profil összesen", value:fmt(mm2m(mat.uwLenTotal),1)+" m", sub:mat.uwPack.bars+" db szál · "+packSummary(mat.uwPack)},
+      {label:"CW profil összesen", value:fmt(mm2m(mat.cwLenTotal),1)+" m", sub:mat.cwPack.bars+" db szál · "+packSummary(mat.cwPack)},
       {label:"Gipszkarton tábla", value:mat.boardsNeeded+" db", sub:fmt(state.boardW)+"×"+fmt(state.boardH)+" mm"},
       {label:"Szigetelés", value:(state.insulationEnabled?mat.insPacks+" csomag":"–"), sub:fmt(mat.insAreaM2,2)+" m² nettó"},
       {label:"Oszlopok száma", value: mat.columnCount+" db", sub:"mező + tok + törpe, összes szakasz"}
     ];
     if (mat.uaPack.bars>0){
-      items.splice(3,0,{label:"UA profil összesen", value:fmt(mm2m(mat.uaLenTotal),1)+" m", sub:mat.uaPack.bars+" db szál ("+fmt(state.stockBarLen/1000,1)+" m)"});
+      items.splice(3,0,{label:"UA profil összesen", value:fmt(mm2m(mat.uaLenTotal),1)+" m", sub:mat.uaPack.bars+" db szál · "+packSummary(mat.uaPack)});
     }
     items.forEach(function(it){
       var d = document.createElement("div"); d.className="kpi";
@@ -1209,12 +1320,12 @@
   function renderMaterials(frList, mat){
     var host = document.getElementById("tab-materials");
     var html = "";
-    html += '<div class="group-title">Fémprofil kihasználtság <span class="n">(összevont vágástervvel, minden szakaszra együtt)</span></div>';
-    html += '<div class="table-scroll"><table class="data"><thead><tr><th>Profil</th><th>Szükséges hossz</th><th>Szál ('+fmt(state.stockBarLen/1000,1)+' m)</th><th>Kihasználtság</th><th>Hulladék</th></tr></thead><tbody>';
-    html += '<tr><td class="label">UW (vezetősín + fejléc)</td><td>'+fmt(mm2m(mat.uwLenTotal),2)+' m</td><td>'+mat.uwPack.bars+' db</td><td>'+fmt(mat.uwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.uwPack.wasteLen),2)+' m</td></tr>';
-    html += '<tr><td class="label">CW (oszlopok)</td><td>'+fmt(mm2m(mat.cwLenTotal),2)+' m</td><td>'+mat.cwPack.bars+' db</td><td>'+fmt(mat.cwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.cwPack.wasteLen),2)+' m</td></tr>';
+    html += '<div class="group-title">Fémprofil kihasználtság <span class="n">(összevont vágástervvel, minden szakaszra együtt, a bepipált méretek közül választva)</span></div>';
+    html += '<div class="table-scroll"><table class="data"><thead><tr><th>Profil</th><th>Szükséges hossz</th><th>Szálak</th><th>Kihasználtság</th><th>Hulladék</th></tr></thead><tbody>';
+    html += '<tr><td class="label">UW (vezetősín + fejléc)</td><td>'+fmt(mm2m(mat.uwLenTotal),2)+' m</td><td>'+mat.uwPack.bars+' db ('+packSummary(mat.uwPack)+')</td><td>'+fmt(mat.uwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.uwPack.wasteLen),2)+' m</td></tr>';
+    html += '<tr><td class="label">CW (oszlopok)</td><td>'+fmt(mm2m(mat.cwLenTotal),2)+' m</td><td>'+mat.cwPack.bars+' db ('+packSummary(mat.cwPack)+')</td><td>'+fmt(mat.cwPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.cwPack.wasteLen),2)+' m</td></tr>';
     if (mat.uaPack.bars>0){
-      html += '<tr><td class="label">UA (ajtó tokoszlop)</td><td>'+fmt(mm2m(mat.uaLenTotal),2)+' m</td><td>'+mat.uaPack.bars+' db</td><td>'+fmt(mat.uaPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.uaPack.wasteLen),2)+' m</td></tr>';
+      html += '<tr><td class="label">UA (ajtó tokoszlop)</td><td>'+fmt(mm2m(mat.uaLenTotal),2)+' m</td><td>'+mat.uaPack.bars+' db ('+packSummary(mat.uaPack)+')</td><td>'+fmt(mat.uaPack.utilPct,0)+' %</td><td>'+fmt(mm2m(mat.uaPack.wasteLen),2)+' m</td></tr>';
     }
     html += '</tbody></table></div>';
 
@@ -1256,12 +1367,18 @@
   }
 
   // ---------- shopping list ----------
+  function stockLineItems(items, label, pack){
+    var lens = Object.keys(pack.byStock).map(Number).sort(function(a,b){return b-a;});
+    lens.forEach(function(l){
+      items.push({cat:"Fémprofil", name:label, sub:fmt(l/1000,1)+" m szálhossz", qty:pack.byStock[l], unit:"db szál"});
+    });
+  }
   function buildShoppingItems(mat){
     var items = [];
-    items.push({cat:"Fémprofil", name:"UW "+state.profileWidth+" mm vezetősín", sub:fmt(state.stockBarLen/1000,1)+" m szálhossz", qty:mat.uwPack.bars, unit:"db szál"});
-    items.push({cat:"Fémprofil", name:"CW "+state.profileWidth+" mm osztóborda", sub:fmt(state.stockBarLen/1000,1)+" m szálhossz", qty:mat.cwPack.bars, unit:"db szál"});
+    stockLineItems(items, "UW "+state.profileWidth+" mm vezetősín", mat.uwPack);
+    stockLineItems(items, "CW "+state.profileWidth+" mm osztóborda", mat.cwPack);
     if (mat.uaPack.bars>0){
-      items.push({cat:"Fémprofil", name:"UA "+state.profileWidth+" mm teherhordó profil (ajtó tokoszlop)", sub:fmt(state.stockBarLen/1000,1)+" m szálhossz", qty:mat.uaPack.bars, unit:"db szál"});
+      stockLineItems(items, "UA "+state.profileWidth+" mm teherhordó profil (ajtó tokoszlop)", mat.uaPack);
     }
     items.push({cat:"Gipszkarton", name:"Gipszkarton tábla "+fmt(state.boardW)+"×"+fmt(state.boardH)+" mm, "+state.boardThickness+" mm", sub:state.sides+" oldal × "+state.layers+" réteg, "+state.sections.length+" szakaszra összesen", qty:mat.boardsNeeded, unit:"db"});
     if (state.insulationEnabled){
@@ -1338,6 +1455,7 @@
     document.getElementById("addPointBtn").addEventListener("click", addPoint);
     document.getElementById("addBasePointBtn").addEventListener("click", addBasePoint);
     document.getElementById("addSectionBtn").addEventListener("click", addSection);
+    ["UW","CW","UA"].forEach(setupStockLenAdd);
     document.getElementById("customBase").addEventListener("change", function(){
       var section = getActiveSection();
       section.customBase = document.getElementById("customBase").checked;
@@ -1378,7 +1496,7 @@
     var globalFields = [
       ["profileWidth","number"], ["studSpacing","number"], ["sides","number"], ["layers","number"],
       ["boardThickness","number"], ["insulationEnabled","checkbox"],
-      ["stockBarLen","number"], ["boardW","number"], ["boardH","number"], ["wastePct","number"],
+      ["boardW","number"], ["boardH","number"], ["wastePct","number"],
       ["insPackArea","number"], ["trackFixSpacing","number"], ["screwsPerM2","number"]
     ];
     globalFields.forEach(function(f){
@@ -1437,7 +1555,7 @@
     document.getElementById("boardThickness").value = String(state.boardThickness);
     document.getElementById("insulationEnabled").checked = state.insulationEnabled;
     document.getElementById("doorJambType").value = state.doorJambType;
-    document.getElementById("stockBarLen").value = String(state.stockBarLen);
+    ["UW","CW","UA"].forEach(renderStockLens);
     document.getElementById("boardW").value = state.boardW;
     document.getElementById("boardH").value = state.boardH;
     document.getElementById("wastePct").value = state.wastePct;
